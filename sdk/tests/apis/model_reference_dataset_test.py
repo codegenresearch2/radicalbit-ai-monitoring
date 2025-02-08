@@ -7,24 +7,11 @@ from radicalbit_platform_sdk.errors import ClientError
 
 class ModelReferenceDatasetTest(unittest.TestCase):
 
-    def setUp(self):
-        self.base_url = 'http://api:9000'
-        self.model_id = uuid.uuid4()
-        self.import_uuid = uuid.uuid4()
-        self.model_reference_dataset = ModelReferenceDataset(
-            self.base_url,
-            self.model_id,
-            ModelType.BINARY,
-            ReferenceFileUpload(
-                uuid=self.import_uuid,
-                path='s3://bucket/file.csv',
-                date='2014',
-                status=JobStatus.IMPORTING,
-            ),
-        )
-
     @responses.activate
     def test_statistics_ok(self):
+        base_url = 'http://api:9000'
+        model_id = uuid.uuid4()
+        import_uuid = uuid.uuid4()
         n_variables = 10
         n_observations = 1000
         missing_cells = 10
@@ -37,7 +24,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
         responses.add(
             responses.GET,
-            f'{self.base_url}/api/models/{str(self.model_id)}/reference/statistics',
+            f'{base_url}/api/models/{str(model_id)}/reference/statistics',
             status=200,
             json={
                 'datetime': 'something_not_used',
@@ -56,43 +43,92 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             },
         )
 
-        stats = self.model_reference_dataset.statistics()
+        model_reference_dataset = ModelReferenceDataset(
+            base_url,
+            model_id,
+            ModelType.BINARY,
+            ReferenceFileUpload(
+                uuid=import_uuid,
+                path='s3://bucket/file.csv',
+                date='2014',
+                status=JobStatus.IMPORTING,
+            ),
+        )
 
-        assert stats.n_variables == n_variables
-        assert stats.n_observations == n_observations
-        assert stats.missing_cells == missing_cells
-        assert stats.missing_cells_perc == missing_cells_perc
-        assert stats.duplicate_rows == duplicate_rows
-        assert stats.duplicate_rows_perc == duplicate_rows_perc
-        assert stats.numeric == numeric
-        assert stats.categorical == categorical
-        assert stats.datetime == datetime
-        assert self.model_reference_dataset.status() == JobStatus.SUCCEEDED
+        stats = model_reference_dataset.statistics()
+
+        self.assertEqual(stats.n_variables, n_variables)
+        self.assertEqual(stats.n_observations, n_observations)
+        self.assertEqual(stats.missing_cells, missing_cells)
+        self.assertEqual(stats.missing_cells_perc, missing_cells_perc)
+        self.assertEqual(stats.duplicate_rows, duplicate_rows)
+        self.assertEqual(stats.duplicate_rows_perc, duplicate_rows_perc)
+        self.assertEqual(stats.numeric, numeric)
+        self.assertEqual(stats.categorical, categorical)
+        self.assertEqual(stats.datetime, datetime)
+        self.assertEqual(model_reference_dataset.status(), JobStatus.SUCCEEDED)
 
     @responses.activate
     def test_statistics_validation_error(self):
+        base_url = 'http://api:9000'
+        model_id = uuid.uuid4()
+        import_uuid = uuid.uuid4()
+
         responses.add(
             responses.GET,
-            f'{self.base_url}/api/models/{str(self.model_id)}/reference/statistics',
+            f'{base_url}/api/models/{str(model_id)}/reference/statistics',
             status=200,
             json={'statistics': 'wrong'},
         )
+
+        model_reference_dataset = ModelReferenceDataset(
+            base_url,
+            model_id,
+            ModelType.BINARY,
+            ReferenceFileUpload(
+                uuid=import_uuid,
+                path='s3://bucket/file.csv',
+                date='2014',
+                status=JobStatus.IMPORTING,
+            ),
+        )
+
         with self.assertRaises(ClientError):
-            self.model_reference_dataset.statistics()
+            model_reference_dataset.statistics()
 
     @responses.activate
     def test_statistics_key_error(self):
+        base_url = 'http://api:9000'
+        model_id = uuid.uuid4()
+        import_uuid = uuid.uuid4()
+
         responses.add(
             responses.GET,
-            f'{self.base_url}/api/models/{str(self.model_id)}/reference/statistics',
+            f'{base_url}/api/models/{str(model_id)}/reference/statistics',
             status=200,
             json={'wrong': 'json'},
         )
+
+        model_reference_dataset = ModelReferenceDataset(
+            base_url,
+            model_id,
+            ModelType.BINARY,
+            ReferenceFileUpload(
+                uuid=import_uuid,
+                path='s3://bucket/file.csv',
+                date='2014',
+                status=JobStatus.IMPORTING,
+            ),
+        )
+
         with self.assertRaises(ClientError):
-            self.model_reference_dataset.statistics()
+            model_reference_dataset.statistics()
 
     @responses.activate
     def test_model_metrics_ok(self):
+        base_url = 'http://api:9000'
+        model_id = uuid.uuid4()
+        import_uuid = uuid.uuid4()
         f1 = 0.75
         accuracy = 0.98
         recall = 0.15
@@ -112,7 +148,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
         responses.add(
             responses.GET,
-            f'{self.base_url}/api/models/{str(self.model_id)}/reference/model-quality',
+            f'{base_url}/api/models/{str(model_id)}/reference/model-quality',
             status=200,
             json={
                 'datetime': 'something_not_used',
@@ -140,42 +176,88 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             },
         )
 
-        metrics = self.model_reference_dataset.model_quality()
+        model_reference_dataset = ModelReferenceDataset(
+            base_url,
+            model_id,
+            ModelType.BINARY,
+            ReferenceFileUpload(
+                uuid=import_uuid,
+                path='s3://bucket/file.csv',
+                date='2014',
+                status=JobStatus.IMPORTING,
+            ),
+        )
 
-        assert metrics.f1 == f1
-        assert metrics.accuracy == accuracy
-        assert metrics.recall == recall
-        assert metrics.weighted_precision == weighted_precision
-        assert metrics.weighted_recall == weighted_recall
-        assert metrics.weighted_true_positive_rate == weighted_true_positive_rate
-        assert metrics.weighted_false_positive_rate == weighted_false_positive_rate
-        assert metrics.weighted_f_measure == weighted_f_measure
-        assert metrics.true_positive_rate == true_positive_rate
-        assert metrics.false_positive_rate == false_positive_rate
-        assert metrics.true_positive_count == true_positive_count
-        assert metrics.false_positive_count == false_positive_count
-        assert metrics.true_negative_count == true_negative_count
-        assert metrics.false_negative_count == false_negative_count
-        assert self.model_reference_dataset.status() == JobStatus.SUCCEEDED
+        metrics = model_reference_dataset.model_quality()
+
+        self.assertEqual(metrics.f1, f1)
+        self.assertEqual(metrics.accuracy, accuracy)
+        self.assertEqual(metrics.recall, recall)
+        self.assertEqual(metrics.weighted_precision, weighted_precision)
+        self.assertEqual(metrics.weighted_recall, weighted_recall)
+        self.assertEqual(metrics.weighted_true_positive_rate, weighted_true_positive_rate)
+        self.assertEqual(metrics.weighted_false_positive_rate, weighted_false_positive_rate)
+        self.assertEqual(metrics.weighted_f_measure, weighted_f_measure)
+        self.assertEqual(metrics.true_positive_rate, true_positive_rate)
+        self.assertEqual(metrics.false_positive_rate, false_positive_rate)
+        self.assertEqual(metrics.true_positive_count, true_positive_count)
+        self.assertEqual(metrics.false_positive_count, false_positive_count)
+        self.assertEqual(metrics.true_negative_count, true_negative_count)
+        self.assertEqual(metrics.false_negative_count, false_negative_count)
+        self.assertEqual(model_reference_dataset.status(), JobStatus.SUCCEEDED)
 
     @responses.activate
     def test_model_metrics_validation_error(self):
+        base_url = 'http://api:9000'
+        model_id = uuid.uuid4()
+        import_uuid = uuid.uuid4()
+
         responses.add(
             responses.GET,
-            f'{self.base_url}/api/models/{str(self.model_id)}/reference/model-quality',
+            f'{base_url}/api/models/{str(model_id)}/reference/model-quality',
             status=200,
             json={'modelQuality': 'wrong'},
         )
+
+        model_reference_dataset = ModelReferenceDataset(
+            base_url,
+            model_id,
+            ModelType.BINARY,
+            ReferenceFileUpload(
+                uuid=import_uuid,
+                path='s3://bucket/file.csv',
+                date='2014',
+                status=JobStatus.IMPORTING,
+            ),
+        )
+
         with self.assertRaises(ClientError):
-            self.model_reference_dataset.model_quality()
+            model_reference_dataset.model_quality()
 
     @responses.activate
     def test_model_metrics_key_error(self):
+        base_url = 'http://api:9000'
+        model_id = uuid.uuid4()
+        import_uuid = uuid.uuid4()
+
         responses.add(
             responses.GET,
-            f'{self.base_url}/api/models/{str(self.model_id)}/reference/model-quality',
+            f'{base_url}/api/models/{str(model_id)}/reference/model-quality',
             status=200,
             json={'wrong': 'json'},
         )
+
+        model_reference_dataset = ModelReferenceDataset(
+            base_url,
+            model_id,
+            ModelType.BINARY,
+            ReferenceFileUpload(
+                uuid=import_uuid,
+                path='s3://bucket/file.csv',
+                date='2014',
+                status=JobStatus.IMPORTING,
+            ),
+        )
+
         with self.assertRaises(ClientError):
-            self.model_reference_dataset.model_quality()
+            model_reference_dataset.model_quality()
