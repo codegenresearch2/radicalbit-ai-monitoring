@@ -56,7 +56,7 @@ class ModelReferenceDataset:
         def __callback(response: requests.Response) -> tuple[JobStatus, Optional[DatasetStats]]:
             try:
                 response_json = response.json()
-                job_status = JobStatus(response_json["jobStatus"])            
+                job_status = JobStatus(response_json["jobStatus"])
                 if "statistics" in response_json:
                     return job_status, DatasetStats.model_validate(response_json["statistics"])
                 else:
@@ -100,7 +100,7 @@ class ModelReferenceDataset:
         def __callback(response: requests.Response) -> Optional[DataQuality]:
             try:
                 response_json = response.json()
-                job_status = JobStatus(response_json["jobStatus"])            
+                job_status = JobStatus(response_json["jobStatus"])
                 if "dataQuality" in response_json:
                     if self.__model_type is ModelType.BINARY:
                         return job_status, BinaryClassificationDataQuality.model_validate(response_json["dataQuality"])
@@ -147,7 +147,7 @@ class ModelReferenceDataset:
         def __callback(response: requests.Response) -> tuple[JobStatus, Optional[ModelQuality]]:
             try:
                 response_json = response.json()
-                job_status = JobStatus(response_json["jobStatus"])            
+                job_status = JobStatus(response_json["jobStatus"])
                 if "modelQuality" in response_json:
                     if self.__model_type is ModelType.BINARY:
                         return job_status, BinaryClassificationModelQuality.model_validate(response_json["modelQuality"])
