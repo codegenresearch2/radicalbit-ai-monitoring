@@ -53,6 +53,7 @@ class NumericalFeatureMetrics(FeatureMetrics):
     min: float
     max: float
     median_metrics: MedianMetrics
+    histogram: 'Histogram'  # Assuming the Histogram class is defined elsewhere
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -86,6 +87,17 @@ class ClassMetrics(BaseModel):
     name: str
     count: int
     percentage: Optional[float] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=to_camel,
+    )
+
+
+class Histogram(BaseModel):
+    buckets: List[float]
+    reference_values: List[int]
+    current_values: Optional[List[int]] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
