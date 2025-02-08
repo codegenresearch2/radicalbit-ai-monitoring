@@ -9,18 +9,7 @@ import responses
 from radicalbit_platform_sdk.apis import Model
 from radicalbit_platform_sdk.errors import ClientError
 from radicalbit_platform_sdk.models import (
-    ColumnDefinition,
-    DataType,
-    FieldType,
-    Granularity,
-    JobStatus,
-    ModelDefinition,
-    ModelType,
-    OutputType,
-    ReferenceFileUpload,
-    SupportedTypes,
-    CurrentFileUpload
-)
+    ColumnDefinition, DataType, FieldType, Granularity, JobStatus, ModelDefinition, ModelType, OutputType, ReferenceFileUpload, SupportedTypes, CurrentFileUpload)
 
 
 class ModelTest(unittest.TestCase):
