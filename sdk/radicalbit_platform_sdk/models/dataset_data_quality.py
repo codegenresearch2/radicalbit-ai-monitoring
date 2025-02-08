@@ -93,7 +93,11 @@ class ClassMetrics(BaseModel):
     )
 
 
-class BinaryClassificationDataQuality(BaseModel):
+class DataQuality(BaseModel):
+    pass
+
+
+class BinaryClassificationDataQuality(DataQuality):
     n_observations: int
     class_metrics: List[ClassMetrics]
     feature_metrics: List[Union[NumericalFeatureMetrics, CategoricalFeatureMetrics]]
@@ -105,9 +109,9 @@ class BinaryClassificationDataQuality(BaseModel):
     )
 
 
-class MultiClassDataQuality(BaseModel):
+class MultiClassDataQuality(DataQuality):
     pass
 
 
-class RegressionDataQuality(BaseModel):
+class RegressionDataQuality(DataQuality):
     pass
