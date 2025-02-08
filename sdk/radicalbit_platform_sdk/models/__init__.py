@@ -41,6 +41,7 @@ from .model_definition import (
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
+from .model_features import ModelFeatures
 
 __all__ = [
     'OutputType',
@@ -80,4 +81,5 @@ __all__ = [
     'AwsCredentials',
     'SupportedTypes',
     'FieldType',
+    'ModelFeatures',
 ]
