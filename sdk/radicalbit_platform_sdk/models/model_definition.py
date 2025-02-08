@@ -45,7 +45,11 @@ class BaseModelDefinition(BaseModel):
     frameworks: Optional[str] = None
     algorithm: Optional[str] = None
 
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel, protected_namespaces=())
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=to_camel,
+        protected_namespaces=()
+    )
 
 
 class CreateModel(BaseModelDefinition):
