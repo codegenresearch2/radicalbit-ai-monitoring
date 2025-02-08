@@ -109,6 +109,7 @@ class BinaryClassificationDataQuality(DataQuality):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         populate_by_name=True,
+        alias_generator=to_camel,
     )
 
 
