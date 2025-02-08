@@ -10,7 +10,6 @@ class MedianMetrics(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
@@ -20,7 +19,6 @@ class MissingValue(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
@@ -31,7 +29,6 @@ class ClassMedianMetrics(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
@@ -42,7 +39,6 @@ class FeatureMetrics(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
@@ -53,11 +49,11 @@ class NumericalFeatureMetrics(FeatureMetrics):
     min: float
     max: float
     median_metrics: MedianMetrics
+    class_median_metrics: List[ClassMedianMetrics]
     histogram: 'Histogram'  # Assuming the Histogram class is defined elsewhere
 
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
@@ -68,7 +64,6 @@ class CategoryFrequency(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
@@ -79,7 +74,6 @@ class CategoricalFeatureMetrics(FeatureMetrics):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
@@ -90,7 +84,6 @@ class ClassMetrics(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
@@ -101,7 +94,6 @@ class Histogram(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
@@ -117,7 +109,6 @@ class BinaryClassificationDataQuality(DataQuality):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         populate_by_name=True,
-        alias_generator=to_camel,
     )
 
 
