@@ -25,9 +25,9 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
-class ModelFeatures:
+class ModelFeatures(BaseModel):
     '''A class to manage model features.''' # Added docstring for ModelFeatures
-    pass
+    features: List[ColumnDefinition]
 
 
 class BaseModelDefinition(BaseModel):
