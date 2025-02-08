@@ -3,7 +3,7 @@ import time
 import unittest
 import uuid
 import boto3
-from moto import mock_aws, mock_s3
+from moto import mock_s3
 import pytest
 import responses
 from radicalbit_platform_sdk.apis import Model
