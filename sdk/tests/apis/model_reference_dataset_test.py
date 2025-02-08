@@ -5,7 +5,7 @@ from radicalbit_platform_sdk.apis import ModelReferenceDataset
 from radicalbit_platform_sdk.models import ReferenceFileUpload, ModelType, JobStatus
 from radicalbit_platform_sdk.errors import ClientError
 
-class ModelReferenceDatasetTests(unittest.TestCase):
+class ModelReferenceDatasetTest(unittest.TestCase):
 
     def setUp(self):
         self.base_url = 'http://api:9000'
