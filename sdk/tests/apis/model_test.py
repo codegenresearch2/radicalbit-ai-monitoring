@@ -3,7 +3,7 @@ import time
 import unittest
 import uuid
 import boto3
-from moto import mock_aws
+from moto import mock_aws, mock_s3
 import pytest
 import responses
 from radicalbit_platform_sdk.apis import Model
@@ -23,6 +23,7 @@ from radicalbit_platform_sdk.models import (
 
 
 class ModelTest(unittest.TestCase):
+    @mock_s3
     @responses.activate
     def test_load_reference_dataset_without_object_name(self):
         base_url = 'http://api:9000'
@@ -44,7 +45,7 @@ class ModelTest(unittest.TestCase):
                 name='My Model',
                 model_type=ModelType.BINARY,
                 data_type=DataType.TABULAR,
-                granularity=Granularity.HOUR,
+                granularity=Granularity.DAY,
                 outputs=OutputType(prediction=column_def, output=[column_def]),
                 target=ColumnDefinition(
                     name='adult',
