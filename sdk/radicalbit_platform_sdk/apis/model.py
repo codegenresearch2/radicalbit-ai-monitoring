@@ -3,7 +3,7 @@ from typing import List, Optional
 from uuid import UUID
 
 import boto3
-from botocore.exceptions import NoCredentialsError
+from botocore.exceptions import NoCredentialsError, BotoCoreError
 import pandas as pd
 from pydantic import TypeAdapter, ValidationError
 import requests
@@ -55,7 +55,12 @@ class Model:
     def algorithm(self) -> Optional[str]: return self.__algorithm
 
     def delete(self) -> None:
-        invoke(method='DELETE', url=f'{self.__base_url}/api/models/{str(self.__uuid)}', valid_response_code=200, func=lambda _: None)
+        invoke(
+            method='DELETE',
+            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
+            valid_response_code=200,
+            func=lambda _: None,
+        )
 
     def get_reference_datasets(self) -> List[ModelReferenceDataset]:
         def __callback(response: requests.Response) -> List[ModelReferenceDataset]:
@@ -69,7 +74,12 @@ class Model:
                 ]
             except ValidationError as e: raise ClientError(f'Unable to parse response: {response.text}') from e
 
-        return invoke(method='GET', url=f'{self.__base_url}/api/models/{str(self.__uuid)}/reference/all', valid_response_code=200, func=__callback)
+        return invoke(
+            method='GET',
+            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/reference/all',
+            valid_response_code=200,
+            func=__callback,
+        )
 
     def get_current_datasets(self) -> List[ModelCurrentDataset]:
         def __callback(response: requests.Response) -> List[ModelCurrentDataset]:
@@ -83,7 +93,12 @@ class Model:
                 ]
             except ValidationError as e: raise ClientError(f'Unable to parse response: {response.text}') from e
 
-        return invoke(method='GET', url=f'{self.__base_url}/api/models/{str(self.__uuid)}/current/all', valid_response_code=200, func=__callback)
+        return invoke(
+            method='GET',
+            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/current/all',
+            valid_response_code=200,
+            func=__callback,
+        )
 
     def load_reference_dataset(self, file_name: str, bucket: str, object_name: Optional[str] = None, aws_credentials: Optional[AwsCredentials] = None, separator: str = ',') -> ModelReferenceDataset:
         if object_name is None:
