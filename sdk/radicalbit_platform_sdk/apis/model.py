@@ -3,7 +3,7 @@ from typing import List, Optional
 from uuid import UUID
 
 import boto3
-from botocore.exceptions import ClientError as BotoClientError
+from botocore.exceptions import NoCredentialsError
 import pandas as pd
 from pydantic import TypeAdapter, ValidationError
 import requests
@@ -85,29 +85,40 @@ class Model:
 
         return invoke(method='GET', url=f'{self.__base_url}/api/models/{str(self.__uuid)}/current/all', valid_response_code=200, func=__callback)
 
-    def load_reference_dataset(
-        self, file_name: str, bucket: str, object_name: Optional[str] = None, aws_credentials: Optional[AwsCredentials] = None, separator: str = ','
-    ) -> ModelReferenceDataset:
-        if object_name is None: object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
+    def load_reference_dataset(self, file_name: str, bucket: str, object_name: Optional[str] = None, aws_credentials: Optional[AwsCredentials] = None, separator: str = ',') -> ModelReferenceDataset:
+        if object_name is None:
+            object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
+
+        if aws_credentials is None:
+            raise NoCredentialsError('AWS credentials are required')
 
         try:
             s3_client = boto3.client(
-                's3', aws_access_key_id=(None if aws_credentials is None else aws_credentials.access_key_id), aws_secret_access_key=(None if aws_credentials is None else aws_credentials.secret_access_key), region_name=(None if aws_credentials is None else aws_credentials.default_region), endpoint_url=(None if aws_credentials is None else aws_credentials.endpoint_url)
+                's3',
+                aws_access_key_id=aws_credentials.access_key_id,
+                aws_secret_access_key=aws_credentials.secret_access_key,
+                region_name=aws_credentials.default_region,
+                endpoint_url=aws_credentials.endpoint_url,
             )
 
             s3_client.upload_file(file_name, bucket, object_name, ExtraArgs={'Metadata': {'model_uuid': str(self.__uuid), 'model_name': self.__name, 'file_type': 'reference'}})
-        except BotoClientError as e: raise ClientError(f'Unable to upload file {file_name} to remote storage: {e}')
+        except NoCredentialsError as e: raise ClientError(f'Unable to upload file {file_name} to remote storage: {e}')
 
         return self.__bind_reference_dataset(f's3://{bucket}/{object_name}', separator)
 
-    def bind_reference_dataset(
-        self, dataset_url: str, aws_credentials: Optional[AwsCredentials] = None, separator: str = ','
-    ) -> ModelReferenceDataset:
+    def bind_reference_dataset(self, dataset_url: str, aws_credentials: Optional[AwsCredentials] = None, separator: str = ',') -> ModelReferenceDataset:
         url_parts = dataset_url.replace('s3://', '').split('/')
+
+        if aws_credentials is None:
+            raise NoCredentialsError('AWS credentials are required')
 
         try:
             s3_client = boto3.client(
-                's3', aws_access_key_id=(None if aws_credentials is None else aws_credentials.access_key_id), aws_secret_access_key=(None if aws_credentials is None else aws_credentials.secret_access_key), region_name=(None if aws_credentials is None else aws_credentials.default_region), endpoint_url=(None if aws_credentials is None else aws_credentials.endpoint_url)
+                's3',
+                aws_access_key_id=aws_credentials.access_key_id,
+                aws_secret_access_key=aws_credentials.secret_access_key,
+                region_name=aws_credentials.default_region,
+                endpoint_url=aws_credentials.endpoint_url,
             )
 
             chunks_iterator = s3_client.get_object(Bucket=url_parts[0], Key='/'.join(url_parts[1:]))['Body'].iter_chunks()
@@ -118,34 +129,46 @@ class Model:
 
             file_headers = chunks.split('\n')[0].split(separator)
 
-            if set(self.__required_headers()).issubset(file_headers): return self.__bind_reference_dataset(dataset_url, separator)
+            if set(self.__required_headers()).issubset(file_headers):
+                return self.__bind_reference_dataset(dataset_url, separator)
 
             raise ClientError(f'File {dataset_url} not contains all defined columns: {self.__required_headers()}')
-        except BotoClientError as e: raise ClientError(f'Unable to get file {dataset_url} from remote storage: {e}')
+        except NoCredentialsError as e: raise ClientError(f'Unable to get file {dataset_url} from remote storage: {e}')
 
-    def load_current_dataset(
-        self, file_name: str, bucket: str, correlation_id_column: Optional[str] = None, object_name: Optional[str] = None, aws_credentials: Optional[AwsCredentials] = None, separator: str = ','
-    ) -> ModelCurrentDataset:
-        if object_name is None: object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
+    def load_current_dataset(self, file_name: str, bucket: str, correlation_id_column: Optional[str] = None, object_name: Optional[str] = None, aws_credentials: Optional[AwsCredentials] = None, separator: str = ',') -> ModelCurrentDataset:
+        if object_name is None:
+            object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
+
+        if aws_credentials is None:
+            raise NoCredentialsError('AWS credentials are required')
 
         try:
             s3_client = boto3.client(
-                's3', aws_access_key_id=(None if aws_credentials is None else aws_credentials.access_key_id), aws_secret_access_key=(None if aws_credentials is None else aws_credentials.secret_access_key), region_name=(None if aws_credentials is None else aws_credentials.default_region), endpoint_url=(None if aws_credentials is None else aws_credentials.endpoint_url)
+                's3',
+                aws_access_key_id=aws_credentials.access_key_id,
+                aws_secret_access_key=aws_credentials.secret_access_key,
+                region_name=aws_credentials.default_region,
+                endpoint_url=aws_credentials.endpoint_url,
             )
 
             s3_client.upload_file(file_name, bucket, object_name, ExtraArgs={'Metadata': {'model_uuid': str(self.__uuid), 'model_name': self.__name, 'file_type': 'reference'}})
-        except BotoClientError as e: raise ClientError(f'Unable to upload file {file_name} to remote storage: {e}')
+        except NoCredentialsError as e: raise ClientError(f'Unable to upload file {file_name} to remote storage: {e}')
 
         return self.__bind_current_dataset(f's3://{bucket}/{object_name}', separator, correlation_id_column)
 
-    def bind_current_dataset(
-        self, dataset_url: str, correlation_id_column: str, aws_credentials: Optional[AwsCredentials] = None, separator: str = ','
-    ) -> ModelCurrentDataset:
+    def bind_current_dataset(self, dataset_url: str, correlation_id_column: str, aws_credentials: Optional[AwsCredentials] = None, separator: str = ',') -> ModelCurrentDataset:
         url_parts = dataset_url.replace('s3://', '').split('/')
+
+        if aws_credentials is None:
+            raise NoCredentialsError('AWS credentials are required')
 
         try:
             s3_client = boto3.client(
-                's3', aws_access_key_id=(None if aws_credentials is None else aws_credentials.access_key_id), aws_secret_access_key=(None if aws_credentials is None else aws_credentials.secret_access_key), region_name=(None if aws_credentials is None else aws_credentials.default_region), endpoint_url=(None if aws_credentials is None else aws_credentials.endpoint_url)
+                's3',
+                aws_access_key_id=aws_credentials.access_key_id,
+                aws_secret_access_key=aws_credentials.secret_access_key,
+                region_name=aws_credentials.default_region,
+                endpoint_url=aws_credentials.endpoint_url,
             )
 
             chunks_iterator = s3_client.get_object(Bucket=url_parts[0], Key='/'.join(url_parts[1:]))['Body'].iter_chunks()
@@ -158,14 +181,13 @@ class Model:
 
             required_headers = self.__required_headers() + [correlation_id_column, self.__timestamp.name]
 
-            if set(required_headers).issubset(file_headers): return self.__bind_current_dataset(dataset_url, separator, correlation_id_column)
+            if set(required_headers).issubset(file_headers):
+                return self.__bind_current_dataset(dataset_url, separator, correlation_id_column)
 
             raise ClientError(f'File {dataset_url} not contains all defined columns: {required_headers}')
-        except BotoClientError as e: raise ClientError(f'Unable to get file {dataset_url} from remote storage: {e}')
+        except NoCredentialsError as e: raise ClientError(f'Unable to get file {dataset_url} from remote storage: {e}')
 
-    def __bind_reference_dataset(
-        self, dataset_url: str, separator: str
-    ) -> ModelReferenceDataset:
+    def __bind_reference_dataset(self, dataset_url: str, separator: str) -> ModelReferenceDataset:
         def __callback(response: requests.Response) -> ModelReferenceDataset:
             try:
                 response = ReferenceFileUpload.model_validate(response.json())
@@ -176,9 +198,7 @@ class Model:
 
         return invoke(method='POST', url=f'{self.__base_url}/api/models/{str(self.__uuid)}/reference/bind', valid_response_code=200, func=__callback, data=file_ref.model_dump_json())
 
-    def __bind_current_dataset(
-        self, dataset_url: str, separator: str, correlation_id_column: Optional[str] = None
-    ) -> ModelCurrentDataset:
+    def __bind_current_dataset(self, dataset_url: str, separator: str, correlation_id_column: Optional[str] = None) -> ModelCurrentDataset:
         def __callback(response: requests.Response) -> ModelCurrentDataset:
             try:
                 response = CurrentFileUpload.model_validate(response.json())
