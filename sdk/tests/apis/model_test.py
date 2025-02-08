@@ -19,6 +19,7 @@ from radicalbit_platform_sdk.models import (
     OutputType,
     ReferenceFileUpload,
     SupportedTypes,
+    CurrentFileUpload
 )
 
 
