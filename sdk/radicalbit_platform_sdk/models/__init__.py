@@ -38,10 +38,10 @@ from .model_definition import (
     Granularity,
     ModelDefinition,
     OutputType,
+    ModelFeatures
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
-from .model_features import ModelFeatures
 
 __all__ = [
     'OutputType',
