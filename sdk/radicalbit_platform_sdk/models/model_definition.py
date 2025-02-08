@@ -25,14 +25,8 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
-class ModelFeatures(BaseModel):
-    features: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
 class BaseModelDefinition(BaseModel):
-    """A base class for model definition.
+    '''A base class for model definition.
 
     Attributes:
         name: The name of the model.
@@ -47,8 +41,7 @@ class BaseModelDefinition(BaseModel):
         frameworks: An optional field to describe the frameworks used by the model
         algorithm: An optional field to explain the algorithm used by the model
 
-    """
-
+    '''
     name: str
     description: Optional[str] = None
     model_type: ModelType
@@ -61,9 +54,7 @@ class BaseModelDefinition(BaseModel):
     frameworks: Optional[str] = None
     algorithm: Optional[str] = None
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
-    )
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel, protected_namespaces=())
 
 
 class CreateModel(BaseModelDefinition):
