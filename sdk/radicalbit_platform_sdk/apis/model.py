@@ -116,7 +116,12 @@ class Model:
                 endpoint_url=aws_credentials.endpoint_url,
             )
 
-            s3_client.upload_file(file_name, bucket, object_name, ExtraArgs={'Metadata': {'model_uuid': str(self.__uuid), 'model_name': self.__name, 'file_type': 'reference'}})
+            s3_client.upload_file(
+                file_name,
+                bucket,
+                object_name,
+                ExtraArgs={'Metadata': {'model_uuid': str(self.__uuid), 'model_name': self.__name, 'file_type': 'reference'}}
+            )
         except NoCredentialsError as e: raise ClientError(f'Unable to upload file {file_name} to remote storage: {e}') from e
 
         return self.__bind_reference_dataset(f's3://{bucket}/{object_name}', separator)
@@ -166,7 +171,12 @@ class Model:
                 endpoint_url=aws_credentials.endpoint_url,
             )
 
-            s3_client.upload_file(file_name, bucket, object_name, ExtraArgs={'Metadata': {'model_uuid': str(self.__uuid), 'model_name': self.__name, 'file_type': 'reference'}})
+            s3_client.upload_file(
+                file_name,
+                bucket,
+                object_name,
+                ExtraArgs={'Metadata': {'model_uuid': str(self.__uuid), 'model_name': self.__name, 'file_type': 'reference'}}
+            )
         except NoCredentialsError as e: raise ClientError(f'Unable to upload file {file_name} to remote storage: {e}') from e
 
         return self.__bind_current_dataset(f's3://{bucket}/{object_name}', separator, correlation_id_column)
@@ -211,7 +221,13 @@ class Model:
 
         file_ref = FileReference(file_url=dataset_url, separator=separator)
 
-        return invoke(method='POST', url=f'{self.__base_url}/api/models/{str(self.__uuid)}/reference/bind', valid_response_code=200, func=__callback, data=file_ref.model_dump_json())
+        return invoke(
+            method='POST',
+            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/reference/bind',
+            valid_response_code=200,
+            func=__callback,
+            data=file_ref.model_dump_json(),
+        )
 
     def __bind_current_dataset(self, dataset_url: str, separator: str, correlation_id_column: Optional[str] = None) -> ModelCurrentDataset:
         def __callback(response: requests.Response) -> ModelCurrentDataset:
@@ -222,7 +238,13 @@ class Model:
 
         file_ref = FileReference(file_url=dataset_url, separator=separator, correlation_id_column=correlation_id_column)
 
-        return invoke(method='POST', url=f'{self.__base_url}/api/models/{str(self.__uuid)}/current/bind', valid_response_code=200, func=__callback, data=file_ref.model_dump_json())
+        return invoke(
+            method='POST',
+            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/current/bind',
+            valid_response_code=200,
+            func=__callback,
+            data=file_ref.model_dump_json(),
+        )
 
     def __required_headers(self) -> List[str]:
         model_columns = self.__features + self.__outputs.output
