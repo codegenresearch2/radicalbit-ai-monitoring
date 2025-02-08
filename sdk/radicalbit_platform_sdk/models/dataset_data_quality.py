@@ -1,12 +1,12 @@
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
-from typing import List, Union
+from typing import List, Optional, Union
 
 
 class MedianMetrics(BaseModel):
-    perc_25: Union[float, None] = None
-    median: Union[float, None] = None
-    perc_75: Union[float, None] = None
+    perc_25: Optional[float] = None
+    median: Optional[float] = None
+    perc_75: Optional[float] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -16,7 +16,7 @@ class MedianMetrics(BaseModel):
 
 class MissingValue(BaseModel):
     count: int
-    percentage: Union[float, None] = None
+    percentage: Optional[float] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -26,7 +26,7 @@ class MissingValue(BaseModel):
 
 class ClassMedianMetrics(BaseModel):
     name: str
-    mean: Union[float, None] = None
+    mean: Optional[float] = None
     median_metrics: MedianMetrics
 
     model_config = ConfigDict(
@@ -53,7 +53,6 @@ class NumericalFeatureMetrics(FeatureMetrics):
     min: float
     max: float
     median_metrics: MedianMetrics
-    class_median_metrics: List[ClassMedianMetrics]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -64,7 +63,7 @@ class NumericalFeatureMetrics(FeatureMetrics):
 class CategoryFrequency(BaseModel):
     name: str
     count: int
-    frequency: Union[float, None] = None
+    frequency: Optional[float] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -83,11 +82,18 @@ class CategoricalFeatureMetrics(FeatureMetrics):
     )
 
 
-class DataQuality(BaseModel):
-    pass
+class ClassMetrics(BaseModel):
+    name: str
+    count: int
+    percentage: Optional[float] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=to_camel,
+    )
 
 
-class BinaryClassificationDataQuality(DataQuality):
+class BinaryClassificationDataQuality(BaseModel):
     n_observations: int
     class_metrics: List[ClassMetrics]
     feature_metrics: List[Union[NumericalFeatureMetrics, CategoricalFeatureMetrics]]
@@ -99,9 +105,9 @@ class BinaryClassificationDataQuality(DataQuality):
     )
 
 
-class MultiClassDataQuality(DataQuality):
+class MultiClassDataQuality(BaseModel):
     pass
 
 
-class RegressionDataQuality(DataQuality):
+class RegressionDataQuality(BaseModel):
     pass
