@@ -1,1 +1,1 @@
-import unittest
+from radicalbit_platform_sdk.apis.model import Model\\nimport unittest\\n\\nclass ModelTest(unittest.TestCase):\\n    def test_something(self):\\n        model = Model()\\n        self.assertIsNotNone(model)\\n\\nif __name__ == '__main__':\\n    unittest.main()
