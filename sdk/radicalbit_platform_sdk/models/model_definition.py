@@ -28,6 +28,7 @@ class Granularity(str, Enum):
 class ModelFeatures(BaseModel):
     '''A class to manage model features.''' # Added docstring for ModelFeatures
     features: List[ColumnDefinition]
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
 class BaseModelDefinition(BaseModel):
@@ -44,9 +45,7 @@ class BaseModelDefinition(BaseModel):
     frameworks: Optional[str] = None
     algorithm: Optional[str] = None
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
-    )
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel, protected_namespaces=())
 
 
 class CreateModel(BaseModelDefinition):
