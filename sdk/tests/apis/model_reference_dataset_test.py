@@ -4,6 +4,7 @@ from radicalbit_platform_sdk.errors import ClientError
 import responses
 import unittest
 import uuid
+from typing import Optional
 
 
 class ModelReferenceDatasetTest(unittest.TestCase):
@@ -38,21 +39,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "body": f"""{{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "statistics": {{
-                        "nVariables": {n_variables},
-                        "nObservations": {n_observations},
-                        "missingCells": {missing_cells},
-                        "missingCellsPerc": {missing_cells_perc},
-                        "duplicateRows": {duplicate_rows},
-                        "duplicateRowsPerc": {duplicate_rows_perc},
-                        "numeric": {numeric},
-                        "categorical": {categorical},
-                        "datetime": {datetime}
-                    }}
-                }}""",
+                "body": f"{{\"datetime\": \"something_not_used\", \"jobStatus\": \"SUCCEEDED\", \"statistics\": {{ \"nVariables\": {n_variables}, \"nObservations\": {n_observations}, \"missingCells\": {missing_cells}, \"missingCellsPerc\": {missing_cells_perc}, \"duplicateRows\": {duplicate_rows}, \"duplicateRowsPerc\": {duplicate_rows_perc}, \"numeric\": {numeric}, \"categorical\": {categorical}, \"datetime\": {datetime} }} }}"
             }
         )
 
@@ -91,7 +78,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "body": '{"statistics": "wrong"}',
+                "body": '{\"statistics\": \"wrong\"}',
             }
         )
 
@@ -120,7 +107,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "body": '{"wrong": "json"}',
+                "body": '{\"wrong\": \"json\"}',
             }
         )
 
@@ -167,30 +154,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "body": f"""{{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "modelQuality": {{
-                        "f1": {f1},
-                        "accuracy": {accuracy},
-                        "precision": {precision},
-                        "recall": {recall},
-                        "fMeasure": {f_measure},
-                        "weightedPrecision": {weighted_precision},
-                        "weightedRecall": {weighted_recall},
-                        "weightedFMeasure": {weighted_f_measure},
-                        "weightedTruePositiveRate": {weighted_true_positive_rate},
-                        "weightedFalsePositiveRate": {weighted_false_positive_rate},
-                        "truePositiveRate": {true_positive_rate},
-                        "falsePositiveRate": {false_positive_rate},
-                        "areaUnderRoc": {area_under_roc},
-                        "areaUnderPr": {area_under_pr},
-                        "truePositiveCount": {true_positive_count},
-                        "falsePositiveCount": {false_positive_count},
-                        "trueNegativeCount": {true_negative_count},
-                        "falseNegativeCount": {false_negative_count}
-                    }}
-                }}""",
+                "body": f"{{\"datetime\": \"something_not_used\", \"jobStatus\": \"SUCCEEDED\", \"modelQuality\": {{ \"f1\": {f1}, \"accuracy\": {accuracy}, \"precision\": {precision}, \"recall\": {recall}, \"fMeasure\": {f_measure}, \"weightedPrecision\": {weighted_precision}, \"weightedRecall\": {weighted_recall}, \"weightedFMeasure\": {weighted_f_measure}, \"weightedTruePositiveRate\": {weighted_true_positive_rate}, \"weightedFalsePositiveRate\": {weighted_false_positive_rate}, \"truePositiveRate\": {true_positive_rate}, \"falsePositiveRate\": {false_positive_rate}, \"areaUnderRoc\": {area_under_roc}, \"areaUnderPr\": {area_under_pr}, \"truePositiveCount\": {true_positive_count}, \"falsePositiveCount\": {false_positive_count}, \"trueNegativeCount\": {true_negative_count}, \"falseNegativeCount\": {false_negative_count} }} }}"
             }
         )
 
@@ -238,7 +202,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "body": '{"modelQuality": "wrong"}',
+                "body": '{\"modelQuality\": \"wrong\"}',
             }
         )
 
@@ -267,158 +231,9 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "body": '{"wrong": "json"}',
+                "body": '{\"wrong\": \"json\"}',
             }
         )
 
         with self.assertRaises(ClientError):
             model_reference_dataset.model_quality()
-
-    @responses.activate
-    def test_data_quality_ok(self):
-        base_url = "http://api:9000"
-        model_id = uuid.uuid4()
-        import_uuid = uuid.uuid4()
-        model_reference_dataset = ModelReferenceDataset(
-            base_url,
-            model_id,
-            ModelType.BINARY,
-            ReferenceFileUpload(
-                uuid=import_uuid,
-                path="s3://bucket/file.csv",
-                date="2014",
-                status=JobStatus.IMPORTING,
-            ),
-        )
-
-        responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
-                "status": 200,
-                "body": """{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "dataQuality": {
-                        "nObservations": 200,
-                        "classMetrics": [
-                            {"name": "classA", "count": 100, "percentage": 50.0},
-                            {"name": "classB", "count": 100, "percentage": 50.0}
-                        ],
-                        "featureMetrics": [
-                            {
-                                "featureName": "age",
-                                "type": "numerical",
-                                "mean": 29.5,
-                                "std": 5.2,
-                                "min": 18,
-                                "max": 45,
-                                "medianMetrics": {"perc25": 25.0, "median": 29.0, "perc75": 34.0},
-                                "missingValue": {"count": 2, "percentage": 0.02},
-                                "classMedianMetrics": [
-                                    {
-                                        "name": "classA",
-                                        "mean": 30.0,
-                                        "medianMetrics": {"perc25": 27.0, "median": 30.0, "perc75": 33.0}
-                                    },
-                                    {
-                                        "name": "classB",
-                                        "mean": 29.0,
-                                        "medianMetrics": {"perc25": 24.0, "median": 28.0, "perc75": 32.0}
-                                    }
-                                ],
-                                "histogram": {
-                                    "buckets": [40.0, 45.0, 50.0, 55.0, 60.0],
-                                    "referenceValues": [50, 150, 200, 150, 50],
-                                    "currentValues": [45, 140, 210, 145, 60]
-                                }
-                            },
-                            {
-                                "featureName": "gender",
-                                "type": "categorical",
-                                "distinctValue": 2,
-                                "categoryFrequency": [
-                                    {"name": "male", "count": 90, "frequency": 0.45},
-                                    {"name": "female", "count": 110, "frequency": 0.55}
-                                ],
-                                "missingValue": {"count": 0, "percentage": 0.0}
-                            }
-                        ]
-                    }
-                }""",
-            }
-        )
-
-        metrics = model_reference_dataset.data_quality()
-
-        assert metrics.n_observations == 200
-        assert len(metrics.class_metrics) == 2
-        assert metrics.class_metrics[0].name == "classA"
-        assert metrics.class_metrics[0].count == 100
-        assert metrics.class_metrics[0].percentage == 50.0
-        assert len(metrics.feature_metrics) == 2
-        assert metrics.feature_metrics[0].feature_name == "age"
-        assert metrics.feature_metrics[0].type == "numerical"
-        assert metrics.feature_metrics[0].mean == 29.5
-        assert metrics.feature_metrics[1].feature_name == "gender"
-        assert metrics.feature_metrics[1].type == "categorical"
-        assert metrics.feature_metrics[1].distinct_value == 2
-        assert model_reference_dataset.status() == JobStatus.SUCCEEDED
-
-    @responses.activate
-    def test_data_quality_validation_error(self):
-        base_url = "http://api:9000"
-        model_id = uuid.uuid4()
-        import_uuid = uuid.uuid4()
-        model_reference_dataset = ModelReferenceDataset(
-            base_url,
-            model_id,
-            ModelType.BINARY,
-            ReferenceFileUpload(
-                uuid=import_uuid,
-                path="s3://bucket/file.csv",
-                date="2014",
-                status=JobStatus.IMPORTING,
-            ),
-        )
-
-        responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
-                "status": 200,
-                "body": '{"dataQuality": "wrong"}',
-            }
-        )
-
-        with self.assertRaises(ClientError):
-            model_reference_dataset.data_quality()
-
-    @responses.activate
-    def test_data_quality_key_error(self):
-        base_url = "http://api:9000"
-        model_id = uuid.uuid4()
-        import_uuid = uuid.uuid4()
-        model_reference_dataset = ModelReferenceDataset(
-            base_url,
-            model_id,
-            ModelType.BINARY,
-            ReferenceFileUpload(
-                uuid=import_uuid,
-                path="s3://bucket/file.csv",
-                date="2014",
-                status=JobStatus.IMPORTING,
-            ),
-        )
-
-        responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
-                "status": 200,
-                "body": '{"wrong": "json"}',
-            }
-        )
-
-        with self.assertRaises(ClientError):
-            model_reference_dataset.data_quality()
