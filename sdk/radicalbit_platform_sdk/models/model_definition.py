@@ -25,23 +25,13 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
+class ModelFeatures:
+    '''A class to manage model features.''' # Added docstring for ModelFeatures
+    pass
+
+
 class BaseModelDefinition(BaseModel):
-    '''A base class for model definition.
-
-    Attributes:
-        name: The name of the model.
-        description: An optional description to explain something about the model.
-        model_type: The type of the model
-        data_type: It explains the data type used by the model
-        granularity: The window used to calculate aggregated metrics
-        features: A list column representing the features set
-        outputs: An OutputType definition to explain the output of the model
-        target: The column used to represent model's target
-        timestamp: The column used to store when prediction was done
-        frameworks: An optional field to describe the frameworks used by the model
-        algorithm: An optional field to explain the algorithm used by the model
-
-    '''
+    '''A base class for model definition.''' # Updated docstring formatting
     name: str
     description: Optional[str] = None
     model_type: ModelType
@@ -54,7 +44,9 @@ class BaseModelDefinition(BaseModel):
     frameworks: Optional[str] = None
     algorithm: Optional[str] = None
 
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel, protected_namespaces=())
+    model_config = ConfigDict(
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
+    )
 
 
 class CreateModel(BaseModelDefinition):
