@@ -3,7 +3,7 @@ from typing import List, Optional
 from uuid import UUID
 
 import boto3
-from botocore.exceptions import NoCredentialsError, BotoCoreError
+from botocore.exceptions import NoCredentialsError, ClientError as BotoClientError
 import pandas as pd
 from pydantic import TypeAdapter, ValidationError
 import requests
@@ -105,7 +105,7 @@ class Model:
             object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
 
         if aws_credentials is None:
-            raise BotoCoreError('AWS credentials are required')
+            raise BotoClientError('AWS credentials are required')
 
         try:
             s3_client = boto3.client(
@@ -125,7 +125,7 @@ class Model:
         url_parts = dataset_url.replace('s3://', '').split('/')
 
         if aws_credentials is None:
-            raise BotoCoreError('AWS credentials are required')
+            raise BotoClientError('AWS credentials are required')
 
         try:
             s3_client = boto3.client(
@@ -155,7 +155,7 @@ class Model:
             object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
 
         if aws_credentials is None:
-            raise BotoCoreError('AWS credentials are required')
+            raise BotoClientError('AWS credentials are required')
 
         try:
             s3_client = boto3.client(
@@ -175,7 +175,7 @@ class Model:
         url_parts = dataset_url.replace('s3://', '').split('/')
 
         if aws_credentials is None:
-            raise BotoCoreError('AWS credentials are required')
+            raise BotoClientError('AWS credentials are required')
 
         try:
             s3_client = boto3.client(
