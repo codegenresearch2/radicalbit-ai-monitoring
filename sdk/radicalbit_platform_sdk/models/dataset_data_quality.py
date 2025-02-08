@@ -44,16 +44,17 @@ class FeatureMetrics(BaseModel):
 
 class NumericalFeatureMetrics(FeatureMetrics):
     type: str = 'numerical'
-    mean: float
-    std: float
-    min: float
-    max: float
+    mean: Optional[float] = None
+    std: Optional[float] = None
+    min: Optional[float] = None
+    max: Optional[float] = None
     median_metrics: MedianMetrics
     class_median_metrics: List[ClassMedianMetrics]
     histogram: 'Histogram'  # Assuming the Histogram class is defined elsewhere
 
     model_config = ConfigDict(
         populate_by_name=True,
+        alias_generator=to_camel,
     )
 
 
@@ -74,6 +75,7 @@ class CategoricalFeatureMetrics(FeatureMetrics):
 
     model_config = ConfigDict(
         populate_by_name=True,
+        alias_generator=to_camel,
     )
 
 
