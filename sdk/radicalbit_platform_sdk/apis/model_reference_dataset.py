@@ -60,11 +60,11 @@ class ModelReferenceDataset:
             try:
                 response_json = response.json()
                 job_status = JobStatus(response_json["jobStatus"])
-                if "statistics" in response_json:
+                if job_status == JobStatus.SUCCEEDED and "statistics" in response_json:
                     return job_status, DatasetStats.model_validate(response_json["statistics"])
                 else:
                     return job_status, None
-            except (KeyError, ValidationError) as _:
+            except (KeyError, ValidationError) as e:
                 raise ClientError(f"Unable to parse response: {response.text}")
 
         job_status, stats = invoke(
@@ -90,14 +90,14 @@ class ModelReferenceDataset:
             try:
                 response_json = response.json()
                 job_status = JobStatus(response_json["jobStatus"])
-                if "dataQuality" in response_json:
+                if job_status == JobStatus.SUCCEEDED and "dataQuality" in response_json:
                     if self.__model_type is ModelType.BINARY:
                         return job_status, BinaryClassificationDataQuality.model_validate(response_json["dataQuality"])
                     else:
                         raise ClientError("Unable to parse get metrics for not binary models")
                 else:
                     return job_status, None
-            except (KeyError, ValidationError) as _:
+            except (KeyError, ValidationError) as e:
                 raise ClientError(f"Unable to parse response: {response.text}")
 
         job_status, metrics = invoke(
@@ -123,14 +123,14 @@ class ModelReferenceDataset:
             try:
                 response_json = response.json()
                 job_status = JobStatus(response_json["jobStatus"])
-                if "modelQuality" in response_json:
+                if job_status == JobStatus.SUCCEEDED and "modelQuality" in response_json:
                     if self.__model_type is ModelType.BINARY:
                         return job_status, BinaryClassificationModelQuality.model_validate(response_json["modelQuality"])
                     else:
                         raise ClientError("Unable to parse get metrics for not binary models")
                 else:
                     return job_status, None
-            except (KeyError, ValidationError) as _:
+            except (KeyError, ValidationError) as e:
                 raise ClientError(f"Unable to parse response: {response.text}")
 
         job_status, metrics = invoke(
