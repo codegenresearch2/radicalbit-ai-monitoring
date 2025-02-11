@@ -101,10 +101,10 @@ class BinaryClassificationDataQuality(DataQuality):
         alias_generator=to_camel
     )
 
-class MultiClassDataQuality(BaseModel):
+class MultiClassDataQuality(DataQuality):
     pass
 
-class RegressionDataQuality(BaseModel):
+class RegressionDataQuality(DataQuality):
     pass
 
 class DataQualityDTO(BaseModel):
