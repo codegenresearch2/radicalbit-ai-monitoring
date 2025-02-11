@@ -107,7 +107,7 @@ class DataQualityDTO(BaseModel):
 
 Changes made based on the feedback:
 1. Added `Optional` to the fields that can be absent.
-2. Included the `Histogram` class as suggested.
+2. Included the `Histogram` class as specified in the gold code.
 3. Ensured the `model_config` is consistent with the gold code.
 4. Marked fields as optional where necessary.
 5. Maintained the inheritance structure.
