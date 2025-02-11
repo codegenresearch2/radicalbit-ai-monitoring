@@ -11,7 +11,7 @@ from radicalbit_platform_sdk.models import (
 )
 from radicalbit_platform_sdk.errors import ClientError
 from pydantic import ValidationError
-from typing import Optional
+from typing import Optional, Callable
 import requests
 from uuid import UUID
 
@@ -59,32 +59,33 @@ class ModelReferenceDataset:
             if self.__statistics is not None:
                 return self.__statistics
             else:
-                status, stats = self.__fetch_statistics()
-                self.__statistics = stats
+                self.__statistics = self.__fetch_statistics()
                 return self.__statistics
         elif self.__status == JobStatus.IMPORTING:
-            status, stats = self.__fetch_statistics()
-            self.__status = status
-            self.__statistics = stats
+            self.__statistics = self.__fetch_statistics()
             return self.__statistics
 
-    def __fetch_statistics(self) -> tuple[JobStatus, Optional[DatasetStats]]:
+    def __fetch_statistics(self) -> Optional[DatasetStats]:
+        def __callback(response: requests.Response) -> Optional[DatasetStats]:
+            try:
+                response_json = response.json()
+                job_status = JobStatus(response_json["jobStatus"])
+                if "statistics" in response_json:
+                    return DatasetStats.model_validate(response_json["statistics"])
+                else:
+                    return None
+            except KeyError:
+                raise ClientError("Unable to parse response: missing expected keys")
+            except ValidationError:
+                raise ClientError("Unable to parse response: invalid data structure")
+
         response = invoke(
             method="GET",
             url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
             valid_response_code=200,
+            func=__callback,
         )
-        try:
-            response_json = response.json()
-            job_status = JobStatus(response_json["jobStatus"])
-            if "statistics" in response_json:
-                return job_status, DatasetStats.model_validate(response_json["statistics"])
-            else:
-                return job_status, None
-        except KeyError:
-            raise ClientError("Unable to parse response: missing expected keys")
-        except ValidationError:
-            raise ClientError("Unable to parse response: invalid data structure")
+        return response
 
     def data_quality(self) -> Optional[DataQuality]:
         """
@@ -98,35 +99,36 @@ class ModelReferenceDataset:
             if self.__data_metrics is not None:
                 return self.__data_metrics
             else:
-                status, metrics = self.__fetch_data_quality()
-                self.__data_metrics = metrics
+                self.__data_metrics = self.__fetch_data_quality()
                 return self.__data_metrics
         elif self.__status == JobStatus.IMPORTING:
-            status, metrics = self.__fetch_data_quality()
-            self.__status = status
-            self.__data_metrics = metrics
+            self.__data_metrics = self.__fetch_data_quality()
             return self.__data_metrics
 
-    def __fetch_data_quality(self) -> tuple[JobStatus, Optional[DataQuality]]:
+    def __fetch_data_quality(self) -> Optional[DataQuality]:
+        def __callback(response: requests.Response) -> Optional[DataQuality]:
+            try:
+                response_json = response.json()
+                job_status = JobStatus(response_json["jobStatus"])
+                if "dataQuality" in response_json:
+                    if self.__model_type is ModelType.BINARY:
+                        return BinaryClassificationDataQuality.model_validate(response_json["dataQuality"])
+                    else:
+                        raise ClientError("Unable to parse get metrics for not binary models")
+                else:
+                    return None
+            except KeyError:
+                raise ClientError("Unable to parse response: missing expected keys")
+            except ValidationError:
+                raise ClientError("Unable to parse response: invalid data structure")
+
         response = invoke(
             method="GET",
             url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
             valid_response_code=200,
+            func=__callback,
         )
-        try:
-            response_json = response.json()
-            job_status = JobStatus(response_json["jobStatus"])
-            if "dataQuality" in response_json:
-                if self.__model_type is ModelType.BINARY:
-                    return job_status, BinaryClassificationDataQuality.model_validate(response_json["dataQuality"])
-                else:
-                    raise ClientError("Unable to parse get metrics for not binary models")
-            else:
-                return job_status, None
-        except KeyError:
-            raise ClientError("Unable to parse response: missing expected keys")
-        except ValidationError:
-            raise ClientError("Unable to parse response: invalid data structure")
+        return response
 
     def model_quality(self) -> Optional[ModelQuality]:
         """
@@ -140,32 +142,33 @@ class ModelReferenceDataset:
             if self.__model_metrics is not None:
                 return self.__model_metrics
             else:
-                status, metrics = self.__fetch_model_quality()
-                self.__model_metrics = metrics
+                self.__model_metrics = self.__fetch_model_quality()
                 return self.__model_metrics
         elif self.__status == JobStatus.IMPORTING:
-            status, metrics = self.__fetch_model_quality()
-            self.__status = status
-            self.__model_metrics = metrics
+            self.__model_metrics = self.__fetch_model_quality()
             return self.__model_metrics
 
-    def __fetch_model_quality(self) -> tuple[JobStatus, Optional[ModelQuality]]:
+    def __fetch_model_quality(self) -> Optional[ModelQuality]:
+        def __callback(response: requests.Response) -> Optional[ModelQuality]:
+            try:
+                response_json = response.json()
+                job_status = JobStatus(response_json["jobStatus"])
+                if "modelQuality" in response_json:
+                    if self.__model_type is ModelType.BINARY:
+                        return BinaryClassificationModelQuality.model_validate(response_json["modelQuality"])
+                    else:
+                        raise ClientError("Unable to parse get metrics for not binary models")
+                else:
+                    return None
+            except KeyError:
+                raise ClientError("Unable to parse response: missing expected keys")
+            except ValidationError:
+                raise ClientError("Unable to parse response: invalid data structure")
+
         response = invoke(
             method="GET",
             url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
             valid_response_code=200,
+            func=__callback,
         )
-        try:
-            response_json = response.json()
-            job_status = JobStatus(response_json["jobStatus"])
-            if "modelQuality" in response_json:
-                if self.__model_type is ModelType.BINARY:
-                    return job_status, BinaryClassificationModelQuality.model_validate(response_json["modelQuality"])
-                else:
-                    raise ClientError("Unable to parse get metrics for not binary models")
-            else:
-                return job_status, None
-        except KeyError:
-            raise ClientError("Unable to parse response: missing expected keys")
-        except ValidationError:
-            raise ClientError("Unable to parse response: invalid data structure")
+        return response
