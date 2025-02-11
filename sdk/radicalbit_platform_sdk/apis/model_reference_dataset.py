@@ -59,7 +59,7 @@ class ModelReferenceDataset:
             if self.__statistics is not None:
                 return self.__statistics
             else:
-                _, stats = invoke(
+                status, stats = invoke(
                     method="GET",
                     url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
                     valid_response_code=200,
@@ -68,13 +68,13 @@ class ModelReferenceDataset:
                 self.__statistics = stats
                 return self.__statistics
         elif self.__status == JobStatus.IMPORTING:
-            _, stats = invoke(
+            status, stats = invoke(
                 method="GET",
                 url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
                 valid_response_code=200,
                 func=self.__parse_statistics_response,
             )
-            self.__status = JobStatus.SUCCEEDED
+            self.__status = status
             self.__statistics = stats
             return self.__statistics
 
@@ -86,10 +86,10 @@ class ModelReferenceDataset:
                 return job_status, DatasetStats.model_validate(response_json["statistics"])
             else:
                 return job_status, None
-        except KeyError as e:
-            raise ClientError(f"Unable to parse response: {response.text}")
-        except ValidationError as e:
-            raise ClientError(f"Unable to parse response: {response.text}")
+        except KeyError:
+            raise ClientError("Unable to parse response: missing expected keys")
+        except ValidationError:
+            raise ClientError("Unable to parse response: invalid data structure")
 
     def data_quality(self) -> Optional[DataQuality]:
         """
@@ -103,7 +103,7 @@ class ModelReferenceDataset:
             if self.__data_metrics is not None:
                 return self.__data_metrics
             else:
-                _, metrics = invoke(
+                status, metrics = invoke(
                     method="GET",
                     url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
                     valid_response_code=200,
@@ -112,13 +112,13 @@ class ModelReferenceDataset:
                 self.__data_metrics = metrics
                 return self.__data_metrics
         elif self.__status == JobStatus.IMPORTING:
-            _, metrics = invoke(
+            status, metrics = invoke(
                 method="GET",
                 url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
                 valid_response_code=200,
                 func=self.__parse_data_quality_response,
             )
-            self.__status = JobStatus.SUCCEEDED
+            self.__status = status
             self.__data_metrics = metrics
             return self.__data_metrics
 
@@ -133,10 +133,10 @@ class ModelReferenceDataset:
                     raise ClientError("Unable to parse get metrics for not binary models")
             else:
                 return None
-        except KeyError as e:
-            raise ClientError(f"Unable to parse response: {response.text}")
-        except ValidationError as e:
-            raise ClientError(f"Unable to parse response: {response.text}")
+        except KeyError:
+            raise ClientError("Unable to parse response: missing expected keys")
+        except ValidationError:
+            raise ClientError("Unable to parse response: invalid data structure")
 
     def model_quality(self) -> Optional[ModelQuality]:
         """
@@ -150,7 +150,7 @@ class ModelReferenceDataset:
             if self.__model_metrics is not None:
                 return self.__model_metrics
             else:
-                _, metrics = invoke(
+                status, metrics = invoke(
                     method="GET",
                     url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
                     valid_response_code=200,
@@ -159,13 +159,13 @@ class ModelReferenceDataset:
                 self.__model_metrics = metrics
                 return self.__model_metrics
         elif self.__status == JobStatus.IMPORTING:
-            _, metrics = invoke(
+            status, metrics = invoke(
                 method="GET",
                 url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
                 valid_response_code=200,
                 func=self.__parse_model_quality_response,
             )
-            self.__status = JobStatus.SUCCEEDED
+            self.__status = status
             self.__model_metrics = metrics
             return self.__model_metrics
 
@@ -180,7 +180,7 @@ class ModelReferenceDataset:
                     raise ClientError("Unable to parse get metrics for not binary models")
             else:
                 return None
-        except KeyError as e:
-            raise ClientError(f"Unable to parse response: {response.text}")
-        except ValidationError as e:
-            raise ClientError(f"Unable to parse response: {response.text}")
+        except KeyError:
+            raise ClientError("Unable to parse response: missing expected keys")
+        except ValidationError:
+            raise ClientError("Unable to parse response: invalid data structure")
