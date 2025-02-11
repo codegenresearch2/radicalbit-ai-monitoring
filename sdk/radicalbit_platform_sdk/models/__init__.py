@@ -37,7 +37,7 @@ from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
-    ModelFeatures,  # Placing ModelFeatures before OutputType
+    ModelFeatures,  # Ensure this is placed correctly
     OutputType,
 )
 from .model_type import ModelType
@@ -81,7 +81,7 @@ __all__ = [
     'AwsCredentials',
     'SupportedTypes',
     'FieldType',
-    'ModelFeatures'  # Adding ModelFeatures to the __all__ list and ensuring correct order
+    'ModelFeatures'  # Ensure this is placed correctly in the __all__ list
 ]
 
 
