@@ -119,7 +119,6 @@ class ModelReferenceDataset:
             raise ClientError(f"Unable to parse response: {response.text}")
 
 
-
 This revised code snippet addresses the feedback by:
 
 1. Centralizing callback logic within the `_parse_response` method.
