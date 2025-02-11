@@ -59,26 +59,21 @@ class ModelReferenceDataset:
             if self.__statistics is not None:
                 return self.__statistics
             else:
-                status, stats = invoke(
-                    method="GET",
-                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
-                    valid_response_code=200,
-                    func=self.__parse_statistics_response,
-                )
+                status, stats = self.__fetch_statistics()
                 self.__statistics = stats
                 return self.__statistics
         elif self.__status == JobStatus.IMPORTING:
-            status, stats = invoke(
-                method="GET",
-                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
-                valid_response_code=200,
-                func=self.__parse_statistics_response,
-            )
+            status, stats = self.__fetch_statistics()
             self.__status = status
             self.__statistics = stats
             return self.__statistics
 
-    def __parse_statistics_response(self, response: requests.Response) -> tuple[JobStatus, Optional[DatasetStats]]:
+    def __fetch_statistics(self) -> tuple[JobStatus, Optional[DatasetStats]]:
+        response = invoke(
+            method="GET",
+            url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
+            valid_response_code=200,
+        )
         try:
             response_json = response.json()
             job_status = JobStatus(response_json["jobStatus"])
@@ -103,36 +98,31 @@ class ModelReferenceDataset:
             if self.__data_metrics is not None:
                 return self.__data_metrics
             else:
-                status, metrics = invoke(
-                    method="GET",
-                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
-                    valid_response_code=200,
-                    func=self.__parse_data_quality_response,
-                )
+                status, metrics = self.__fetch_data_quality()
                 self.__data_metrics = metrics
                 return self.__data_metrics
         elif self.__status == JobStatus.IMPORTING:
-            status, metrics = invoke(
-                method="GET",
-                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
-                valid_response_code=200,
-                func=self.__parse_data_quality_response,
-            )
+            status, metrics = self.__fetch_data_quality()
             self.__status = status
             self.__data_metrics = metrics
             return self.__data_metrics
 
-    def __parse_data_quality_response(self, response: requests.Response) -> Optional[DataQuality]:
+    def __fetch_data_quality(self) -> tuple[JobStatus, Optional[DataQuality]]:
+        response = invoke(
+            method="GET",
+            url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
+            valid_response_code=200,
+        )
         try:
             response_json = response.json()
             job_status = JobStatus(response_json["jobStatus"])
             if "dataQuality" in response_json:
                 if self.__model_type is ModelType.BINARY:
-                    return BinaryClassificationDataQuality.model_validate(response_json["dataQuality"])
+                    return job_status, BinaryClassificationDataQuality.model_validate(response_json["dataQuality"])
                 else:
                     raise ClientError("Unable to parse get metrics for not binary models")
             else:
-                return None
+                return job_status, None
         except KeyError:
             raise ClientError("Unable to parse response: missing expected keys")
         except ValidationError:
@@ -150,36 +140,31 @@ class ModelReferenceDataset:
             if self.__model_metrics is not None:
                 return self.__model_metrics
             else:
-                status, metrics = invoke(
-                    method="GET",
-                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
-                    valid_response_code=200,
-                    func=self.__parse_model_quality_response,
-                )
+                status, metrics = self.__fetch_model_quality()
                 self.__model_metrics = metrics
                 return self.__model_metrics
         elif self.__status == JobStatus.IMPORTING:
-            status, metrics = invoke(
-                method="GET",
-                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
-                valid_response_code=200,
-                func=self.__parse_model_quality_response,
-            )
+            status, metrics = self.__fetch_model_quality()
             self.__status = status
             self.__model_metrics = metrics
             return self.__model_metrics
 
-    def __parse_model_quality_response(self, response: requests.Response) -> Optional[ModelQuality]:
+    def __fetch_model_quality(self) -> tuple[JobStatus, Optional[ModelQuality]]:
+        response = invoke(
+            method="GET",
+            url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
+            valid_response_code=200,
+        )
         try:
             response_json = response.json()
             job_status = JobStatus(response_json["jobStatus"])
             if "modelQuality" in response_json:
                 if self.__model_type is ModelType.BINARY:
-                    return BinaryClassificationModelQuality.model_validate(response_json["modelQuality"])
+                    return job_status, BinaryClassificationModelQuality.model_validate(response_json["modelQuality"])
                 else:
                     raise ClientError("Unable to parse get metrics for not binary models")
             else:
-                return None
+                return job_status, None
         except KeyError:
             raise ClientError("Unable to parse response: missing expected keys")
         except ValidationError:
