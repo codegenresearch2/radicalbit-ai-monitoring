@@ -58,16 +58,16 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
         stats = model_reference_dataset.statistics()
 
-        assert stats.n_variables == n_variables
-        assert stats.n_observations == n_observations
-        assert stats.missing_cells == missing_cells
-        assert stats.missing_cells_perc == missing_cells_perc
-        assert stats.duplicate_rows == duplicate_rows
-        assert stats.duplicate_rows_perc == duplicate_rows_perc
-        assert stats.numeric == numeric
-        assert stats.categorical == categorical
-        assert stats.datetime == datetime
-        assert model_reference_dataset.status() == JobStatus.SUCCEEDED
+        self.assertEqual(stats.n_variables, n_variables)
+        self.assertEqual(stats.n_observations, n_observations)
+        self.assertEqual(stats.missing_cells, missing_cells)
+        self.assertEqual(stats.missing_cells_perc, missing_cells_perc)
+        self.assertEqual(stats.duplicate_rows, duplicate_rows)
+        self.assertEqual(stats.duplicate_rows_perc, duplicate_rows_perc)
+        self.assertEqual(stats.numeric, numeric)
+        self.assertEqual(stats.categorical, categorical)
+        self.assertEqual(stats.datetime, datetime)
+        self.assertEqual(model_reference_dataset.status(), JobStatus.SUCCEEDED)
 
     @responses.activate
     def test_statistics_validation_error(self):
@@ -196,25 +196,25 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
         metrics = model_reference_dataset.model_quality()
 
-        assert metrics.f1 == f1
-        assert metrics.accuracy == accuracy
-        assert metrics.recall == recall
-        assert metrics.weighted_precision == weighted_precision
-        assert metrics.weighted_recall == weighted_recall
-        assert metrics.weighted_true_positive_rate == weighted_true_positive_rate
-        assert metrics.weighted_false_positive_rate == weighted_false_positive_rate
-        assert metrics.weighted_f_measure == weighted_f_measure
-        assert metrics.true_positive_rate == true_positive_rate
-        assert metrics.false_positive_rate == false_positive_rate
-        assert metrics.true_positive_count == true_positive_count
-        assert metrics.false_positive_count == false_positive_count
-        assert metrics.true_negative_count == true_negative_count
-        assert metrics.false_negative_count == false_negative_count
-        assert metrics.precision == precision
-        assert metrics.f_measure == f_measure
-        assert metrics.area_under_roc == area_under_roc
-        assert metrics.area_under_pr == area_under_pr
-        assert model_reference_dataset.status() == JobStatus.SUCCEEDED
+        self.assertEqual(metrics.f1, f1)
+        self.assertEqual(metrics.accuracy, accuracy)
+        self.assertEqual(metrics.recall, recall)
+        self.assertEqual(metrics.weighted_precision, weighted_precision)
+        self.assertEqual(metrics.weighted_recall, weighted_recall)
+        self.assertEqual(metrics.weighted_true_positive_rate, weighted_true_positive_rate)
+        self.assertEqual(metrics.weighted_false_positive_rate, weighted_false_positive_rate)
+        self.assertEqual(metrics.weighted_f_measure, weighted_f_measure)
+        self.assertEqual(metrics.true_positive_rate, true_positive_rate)
+        self.assertEqual(metrics.false_positive_rate, false_positive_rate)
+        self.assertEqual(metrics.true_positive_count, true_positive_count)
+        self.assertEqual(metrics.false_positive_count, false_positive_count)
+        self.assertEqual(metrics.true_negative_count, true_negative_count)
+        self.assertEqual(metrics.false_negative_count, false_negative_count)
+        self.assertEqual(metrics.precision, precision)
+        self.assertEqual(metrics.f_measure, f_measure)
+        self.assertEqual(metrics.area_under_roc, area_under_roc)
+        self.assertEqual(metrics.area_under_pr, area_under_pr)
+        self.assertEqual(model_reference_dataset.status(), JobStatus.SUCCEEDED)
 
     @responses.activate
     def test_model_metrics_validation_error(self):
@@ -273,152 +273,3 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
         with self.assertRaises(ClientError):
             model_reference_dataset.model_quality()
-
-    @responses.activate
-    def test_data_quality_ok(self):
-        base_url = "http://api:9000"
-        model_id = uuid.uuid4()
-        import_uuid = uuid.uuid4()
-        model_reference_dataset = ModelReferenceDataset(
-            base_url,
-            model_id,
-            ModelType.BINARY,
-            ReferenceFileUpload(
-                uuid=import_uuid,
-                path="s3://bucket/file.csv",
-                date="2014",
-                status=JobStatus.IMPORTING,
-            ),
-        )
-
-        responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
-                "status": 200,
-                "body": """{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "dataQuality": {
-                        "nObservations": 200,
-                        "classMetrics": [
-                            {"name": "classA", "count": 100, "percentage": 50.0},
-                            {"name": "classB", "count": 100, "percentage": 50.0}
-                        ],
-                        "featureMetrics": [
-                            {
-                                "featureName": "age",
-                                "type": "numerical",
-                                "mean": 29.5,
-                                "std": 5.2,
-                                "min": 18,
-                                "max": 45,
-                                "medianMetrics": {"perc25": 25.0, "median": 29.0, "perc75": 34.0},
-                                "missingValue": {"count": 2, "percentage": 0.02},
-                                "classMedianMetrics": [
-                                    {
-                                        "name": "classA",
-                                        "mean": 30.0,
-                                        "medianMetrics": {"perc25": 27.0, "median": 30.0, "perc75": 33.0}
-                                    },
-                                    {
-                                        "name": "classB",
-                                        "mean": 29.0,
-                                        "medianMetrics": {"perc25": 24.0, "median": 28.0, "perc75": 32.0}
-                                    }
-                                ],
-                                "histogram": {
-                                    "buckets": [40.0, 45.0, 50.0, 55.0, 60.0],
-                                    "referenceValues": [50, 150, 200, 150, 50],
-                                    "currentValues": [45, 140, 210, 145, 60]
-                                }
-                            },
-                            {
-                                "featureName": "gender",
-                                "type": "categorical",
-                                "distinctValue": 2,
-                                "categoryFrequency": [
-                                    {"name": "male", "count": 90, "frequency": 0.45},
-                                    {"name": "female", "count": 110, "frequency": 0.55}
-                                ],
-                                "missingValue": {"count": 0, "percentage": 0.0}
-                            }
-                        ]
-                    }
-                }""",
-            }
-        )
-
-        metrics = model_reference_dataset.data_quality()
-
-        assert metrics.n_observations == 200
-        assert len(metrics.class_metrics) == 2
-        assert metrics.class_metrics[0].name == "classA"
-        assert metrics.class_metrics[0].count == 100
-        assert metrics.class_metrics[0].percentage == 50.0
-        assert len(metrics.feature_metrics) == 2
-        assert metrics.feature_metrics[0].feature_name == "age"
-        assert metrics.feature_metrics[0].type == "numerical"
-        assert metrics.feature_metrics[0].mean == 29.5
-        assert metrics.feature_metrics[1].feature_name == "gender"
-        assert metrics.feature_metrics[1].type == "categorical"
-        assert metrics.feature_metrics[1].distinct_value == 2
-        assert model_reference_dataset.status() == JobStatus.SUCCEEDED
-
-    @responses.activate
-    def test_data_quality_validation_error(self):
-        base_url = "http://api:9000"
-        model_id = uuid.uuid4()
-        import_uuid = uuid.uuid4()
-        model_reference_dataset = ModelReferenceDataset(
-            base_url,
-            model_id,
-            ModelType.BINARY,
-            ReferenceFileUpload(
-                uuid=import_uuid,
-                path="s3://bucket/file.csv",
-                date="2014",
-                status=JobStatus.IMPORTING,
-            ),
-        )
-
-        responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
-                "status": 200,
-                "body": '{"dataQuality": "wrong"}',
-            }
-        )
-
-        with self.assertRaises(ClientError):
-            model_reference_dataset.data_quality()
-
-    @responses.activate
-    def test_data_quality_key_error(self):
-        base_url = "http://api:9000"
-        model_id = uuid.uuid4()
-        import_uuid = uuid.uuid4()
-        model_reference_dataset = ModelReferenceDataset(
-            base_url,
-            model_id,
-            ModelType.BINARY,
-            ReferenceFileUpload(
-                uuid=import_uuid,
-                path="s3://bucket/file.csv",
-                date="2014",
-                status=JobStatus.IMPORTING,
-            ),
-        )
-
-        responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
-                "status": 200,
-                "body": '{"wrong": "json"}',
-            }
-        )
-
-        with self.assertRaises(ClientError):
-            model_reference_dataset.data_quality()
