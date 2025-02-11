@@ -41,6 +41,7 @@ from .model_definition import (
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
+from .model_features import ModelFeatures  # Added missing import
 
 __all__ = [
     'OutputType',
@@ -80,4 +81,11 @@ __all__ = [
     'AwsCredentials',
     'SupportedTypes',
     'FieldType',
+    'ModelFeatures'  # Added to __all__
 ]
+
+
+Changes made:
+1. Added the missing import `from .model_features import ModelFeatures` at the top of the file.
+2. Updated the `__all__` list to include `ModelFeatures`.
+3. Ensured the order of imports matches the gold code for better readability and consistency.
