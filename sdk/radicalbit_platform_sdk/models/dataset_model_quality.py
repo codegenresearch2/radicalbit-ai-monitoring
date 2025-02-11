@@ -24,3 +24,9 @@ class BinaryClassificationModelQuality(ModelQuality):
     false_negative_count: int
     area_under_roc: Optional[float] = None
     area_under_pr: Optional[float] = None
+
+class MultiClassModelQuality(ModelQuality):
+    pass
+
+class RegressionModelQuality(ModelQuality):
+    pass
