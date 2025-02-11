@@ -24,30 +24,30 @@ class ModelReferenceDataset:
         model_type: ModelType,
         upload: ReferenceFileUpload,
     ) -> None:
-        self.base_url = base_url
-        self.model_uuid = model_uuid
-        self.model_type = model_type
-        self.uuid = upload.uuid
-        self.path = upload.path
-        self.date = upload.date
-        self.status = upload.status
-        self.statistics = None
-        self.model_metrics = None
-        self.data_metrics = None
+        self.__base_url = base_url
+        self.__model_uuid = model_uuid
+        self.__model_type = model_type
+        self.__uuid = upload.uuid
+        self.__path = upload.path
+        self.__date = upload.date
+        self.__status = upload.status
+        self.__statistics = None
+        self.__model_metrics = None
+        self.__data_metrics = None
 
-    def get_uuid(self) -> UUID:
-        return self.uuid
+    def uuid(self) -> UUID:
+        return self.__uuid
 
-    def get_path(self) -> str:
-        return self.path
+    def path(self) -> str:
+        return self.__path
 
-    def get_date(self) -> str:
-        return self.date
+    def date(self) -> str:
+        return self.__date
 
-    def get_status(self) -> str:
-        return self.status
+    def status(self) -> str:
+        return self.__status
 
-    def get_statistics(self) -> Optional[DatasetStats]:
+    def statistics(self) -> Optional[DatasetStats]:
         """
         Get statistics about the current dataset
 
@@ -71,29 +71,29 @@ class ModelReferenceDataset:
             except ValidationError as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
 
-        if self.status == JobStatus.ERROR:
-            self.statistics = None
-        elif self.status == JobStatus.SUCCEEDED and self.statistics is None:
+        if self.__status == JobStatus.ERROR:
+            self.__statistics = None
+        elif self.__status == JobStatus.SUCCEEDED and self.__statistics is None:
             _, stats = invoke(
                 method="GET",
-                url=f"{self.base_url}/api/models/{str(self.model_uuid)}/reference/statistics",
+                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
                 valid_response_code=200,
                 func=__callback,
             )
-            self.statistics = stats
-        elif self.status == JobStatus.IMPORTING:
+            self.__statistics = stats
+        elif self.__status == JobStatus.IMPORTING:
             status, stats = invoke(
                 method="GET",
-                url=f"{self.base_url}/api/models/{str(self.model_uuid)}/reference/statistics",
+                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
                 valid_response_code=200,
                 func=__callback,
             )
-            self.status = status
-            self.statistics = stats
+            self.__status = status
+            self.__statistics = stats
 
-        return self.statistics
+        return self.__statistics
 
-    def get_data_quality(self) -> Optional[DataQuality]:
+    def data_quality(self) -> Optional[DataQuality]:
         """
         Get data quality metrics about the current dataset
 
@@ -105,7 +105,7 @@ class ModelReferenceDataset:
                 response_json = response.json()
                 job_status = JobStatus(response_json["jobStatus"])
                 if "dataQuality" in response_json:
-                    if self.model_type is ModelType.BINARY:
+                    if self.__model_type is ModelType.BINARY:
                         return (
                             job_status,
                             BinaryClassificationDataQuality.model_validate(
@@ -123,29 +123,29 @@ class ModelReferenceDataset:
             except ValidationError as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
 
-        if self.status == JobStatus.ERROR:
-            self.data_metrics = None
-        elif self.status == JobStatus.SUCCEEDED and self.data_metrics is None:
+        if self.__status == JobStatus.ERROR:
+            self.__data_metrics = None
+        elif self.__status == JobStatus.SUCCEEDED and self.__data_metrics is None:
             _, metrics = invoke(
                 method="GET",
-                url=f"{self.base_url}/api/models/{str(self.model_uuid)}/reference/data-quality",
+                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
                 valid_response_code=200,
                 func=__callback,
             )
-            self.data_metrics = metrics
-        elif self.status == JobStatus.IMPORTING:
+            self.__data_metrics = metrics
+        elif self.__status == JobStatus.IMPORTING:
             status, metrics = invoke(
                 method="GET",
-                url=f"{self.base_url}/api/models/{str(self.model_uuid)}/reference/data-quality",
+                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
                 valid_response_code=200,
                 func=__callback,
             )
-            self.status = status
-            self.data_metrics = metrics
+            self.__status = status
+            self.__data_metrics = metrics
 
-        return self.data_metrics
+        return self.__data_metrics
 
-    def get_model_quality(self) -> Optional[ModelQuality]:
+    def model_quality(self) -> Optional[ModelQuality]:
         """
         Get model quality metrics about the current dataset
 
@@ -159,7 +159,7 @@ class ModelReferenceDataset:
                 response_json = response.json()
                 job_status = JobStatus(response_json["jobStatus"])
                 if "modelQuality" in response_json:
-                    if self.model_type is ModelType.BINARY:
+                    if self.__model_type is ModelType.BINARY:
                         return (
                             job_status,
                             BinaryClassificationModelQuality.model_validate(
@@ -177,24 +177,24 @@ class ModelReferenceDataset:
             except ValidationError as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
 
-        if self.status == JobStatus.ERROR:
-            self.model_metrics = None
-        elif self.status == JobStatus.SUCCEEDED and self.model_metrics is None:
+        if self.__status == JobStatus.ERROR:
+            self.__model_metrics = None
+        elif self.__status == JobStatus.SUCCEEDED and self.__model_metrics is None:
             _, metrics = invoke(
                 method="GET",
-                url=f"{self.base_url}/api/models/{str(self.model_uuid)}/reference/model-quality",
+                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
                 valid_response_code=200,
                 func=__callback,
             )
-            self.model_metrics = metrics
-        elif self.status == JobStatus.IMPORTING:
+            self.__model_metrics = metrics
+        elif self.__status == JobStatus.IMPORTING:
             status, metrics = invoke(
                 method="GET",
-                url=f"{self.base_url}/api/models/{str(self.model_uuid)}/reference/model-quality",
+                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
                 valid_response_code=200,
                 func=__callback,
             )
-            self.status = status
-            self.model_metrics = metrics
+            self.__status = status
+            self.__model_metrics = metrics
 
-        return self.model_metrics
+        return self.__model_metrics
