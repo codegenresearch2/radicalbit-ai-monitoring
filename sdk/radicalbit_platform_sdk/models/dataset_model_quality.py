@@ -2,24 +2,19 @@ from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 from typing import Optional
 
-
-class ModelQuality(BaseModel):
-    pass
-
-
-class BinaryClassificationModelQuality(ModelQuality):
-    f1: Optional[float] = None
-    accuracy: Optional[float] = None
-    precision: Optional[float] = None
-    recall: Optional[float] = None
-    f_measure: Optional[float] = None
-    weighted_precision: Optional[float] = None
-    weighted_recall: Optional[float] = None
-    weighted_f_measure: Optional[float] = None
-    weighted_true_positive_rate: Optional[float] = None
-    weighted_false_positive_rate: Optional[float] = None
-    true_positive_rate: Optional[float] = None
-    false_positive_rate: Optional[float] = None
+class DatasetStats(BaseModel):
+    f1: float
+    accuracy: float
+    precision: float
+    recall: float
+    f_measure: float
+    weighted_precision: float
+    weighted_recall: float
+    weighted_f_measure: float
+    weighted_true_positive_rate: float
+    weighted_false_positive_rate: float
+    true_positive_rate: float
+    false_positive_rate: float
     true_positive_count: int
     false_positive_count: int
     true_negative_count: int
@@ -30,11 +25,3 @@ class BinaryClassificationModelQuality(ModelQuality):
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
-
-
-class MultiClassModelQuality(ModelQuality):
-    pass
-
-
-class RegressionModelQuality(ModelQuality):
-    pass
