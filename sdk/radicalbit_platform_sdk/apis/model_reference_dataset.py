@@ -11,7 +11,7 @@ from radicalbit_platform_sdk.models import (
 )
 from radicalbit_platform_sdk.errors import ClientError
 from pydantic import ValidationError
-from typing import Optional
+from typing import Optional, Callable
 import requests
 from uuid import UUID
 
