@@ -22,7 +22,6 @@ from radicalbit_platform_sdk.models import (
     ModelType,
     OutputType,
     ReferenceFileUpload,
-    ModelFeatures,  # Assuming ModelFeatures is a class defined in the SDK
 )
 
 
@@ -154,7 +153,7 @@ class Model:
                 url=f'{self.__base_url}/api/models/{str(self.__uuid)}/features',
                 valid_response_code=200,
                 func=lambda _: None,
-                data=ModelFeatures(features=new_features).model_dump_json(),
+                data=new_features,
             )
         except Exception as e:
             raise ClientError(f"Failed to update features: {str(e)}")
