@@ -234,7 +234,7 @@ class Model:
                 raise ClientError(
                     f'Unable to upload file {file_name} to remote storage: {e}'
                 ) from e
-            return self.bind_reference_dataset(
+            return self.__bind_reference_dataset(
                 f's3://{bucket}/{object_name}', separator
             )
 
@@ -376,7 +376,7 @@ class Model:
                 raise ClientError(
                     f'Unable to upload file {file_name} to remote storage: {e}'
                 ) from e
-            return self.bind_current_dataset(
+            return self.__bind_current_dataset(
                 f's3://{bucket}/{object_name}', separator, correlation_id_column
             )
 
