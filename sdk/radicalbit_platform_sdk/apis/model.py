@@ -146,7 +146,15 @@ class Model:
             if not isinstance(feature, ColumnDefinition):
                 raise ClientError(f"Invalid feature type: {type(feature)}")
 
-        self.__features.extend(new_features)
+        # Assuming there's an API call to update features
+        # This is a placeholder for the actual API call
+        invoke(
+            method='POST',
+            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/features',
+            valid_response_code=200,
+            func=lambda _: None,
+            data=new_features,
+        )
 
     def load_reference_dataset(
         self,
