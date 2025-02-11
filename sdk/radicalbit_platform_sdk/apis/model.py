@@ -22,6 +22,7 @@ from radicalbit_platform_sdk.models import (
     ModelType,
     OutputType,
     ReferenceFileUpload,
+    ModelFeatures,  # Assuming ModelFeatures is a class defined in the SDK
 )
 
 
@@ -142,19 +143,21 @@ class Model:
         Raises:
             ClientError: If the new features do not conform to the expected structure.
         """
-        for feature in new_features:
-            if not isinstance(feature, ColumnDefinition):
-                raise ClientError(f"Invalid feature type: {type(feature)}")
+        if not all(isinstance(feature, ColumnDefinition) for feature in new_features):
+            raise ClientError("All items in new_features must be of type ColumnDefinition.")
 
         # Assuming there's an API call to update features
         # This is a placeholder for the actual API call
-        invoke(
-            method='POST',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/features',
-            valid_response_code=200,
-            func=lambda _: None,
-            data=new_features,
-        )
+        try:
+            response = invoke(
+                method='POST',
+                url=f'{self.__base_url}/api/models/{str(self.__uuid)}/features',
+                valid_response_code=200,
+                func=lambda _: None,
+                data=ModelFeatures(features=new_features).model_dump_json(),
+            )
+        except Exception as e:
+            raise ClientError(f"Failed to update features: {str(e)}")
 
     def load_reference_dataset(
         self,
@@ -182,62 +185,50 @@ class Model:
 
         required_headers = self.__required_headers()
 
-        if set(required_headers).issubset(file_headers):
-            if object_name is None:
-                object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
-
-            try:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.access_key_id
-                    ),
-                    aws_secret_access_key=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.secret_access_key
-                    ),
-                    region_name=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.default_region
-                    ),
-                    endpoint_url=(
-                        None
-                        if aws_credentials is None
-                        else (
-                            None
-                            if aws_credentials.endpoint_url is None
-                            else aws_credentials.endpoint_url
-                        )
-                    ),
-                )
-
-                s3_client.upload_file(
-                    file_name,
-                    bucket,
-                    object_name,
-                    ExtraArgs={
-                        'Metadata': {
-                            'model_uuid': str(self.__uuid),
-                            'model_name': self.__name,
-                            'file_type': 'reference',
-                        }
-                    },
-                )
-            except BotoClientError as e:
-                raise ClientError(
-                    f'Unable to upload file {file_name} to remote storage: {e}'
-                ) from e
-            return self.__bind_reference_dataset(
-                f's3://{bucket}/{object_name}', separator
+        if not set(required_headers).issubset(file_headers):
+            missing_headers = set(required_headers) - set(file_headers)
+            raise ClientError(
+                f'File {file_name} does not contain all required columns: {missing_headers}'
             )
 
-        raise ClientError(
-            f'File {file_name} not contains all defined columns: {required_headers}'
-        ) from None
+        if object_name is None:
+            object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
+
+        try:
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=(
+                    None if aws_credentials is None else aws_credentials.access_key_id
+                ),
+                aws_secret_access_key=(
+                    None if aws_credentials is None else aws_credentials.secret_access_key
+                ),
+                region_name=(
+                    None if aws_credentials is None else aws_credentials.default_region
+                ),
+                endpoint_url=(
+                    None if aws_credentials is None else aws_credentials.endpoint_url
+                ),
+            )
+
+            s3_client.upload_file(
+                file_name,
+                bucket,
+                object_name,
+                ExtraArgs={
+                    'Metadata': {
+                        'model_uuid': str(self.__uuid),
+                        'model_name': self.__name,
+                        'file_type': 'reference',
+                    }
+                },
+            )
+        except BotoClientError as e:
+            raise ClientError(
+                f'Unable to upload file {file_name} to remote storage: {e}'
+            ) from e
+
+        return self.__bind_reference_dataset(f's3://{bucket}/{object_name}', separator)
 
     def load_current_dataset(
         self,
@@ -270,62 +261,50 @@ class Model:
             required_headers.append(correlation_id_column)
         required_headers.append(self.__timestamp.name)
 
-        if set(required_headers).issubset(file_headers):
-            if object_name is None:
-                object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
-
-            try:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.access_key_id
-                    ),
-                    aws_secret_access_key=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.secret_access_key
-                    ),
-                    region_name=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.default_region
-                    ),
-                    endpoint_url=(
-                        None
-                        if aws_credentials is None
-                        else (
-                            None
-                            if aws_credentials.endpoint_url is None
-                            else aws_credentials.endpoint_url
-                        )
-                    ),
-                )
-
-                s3_client.upload_file(
-                    file_name,
-                    bucket,
-                    object_name,
-                    ExtraArgs={
-                        'Metadata': {
-                            'model_uuid': str(self.__uuid),
-                            'model_name': self.__name,
-                            'file_type': 'reference',
-                        }
-                    },
-                )
-            except BotoClientError as e:
-                raise ClientError(
-                    f'Unable to upload file {file_name} to remote storage: {e}'
-                ) from e
-            return self.__bind_current_dataset(
-                f's3://{bucket}/{object_name}', separator, correlation_id_column
+        if not set(required_headers).issubset(file_headers):
+            missing_headers = set(required_headers) - set(file_headers)
+            raise ClientError(
+                f'File {file_name} does not contain all required columns: {missing_headers}'
             )
 
-        raise ClientError(
-            f'File {file_name} not contains all defined columns: {required_headers}'
-        ) from None
+        if object_name is None:
+            object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
+
+        try:
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=(
+                    None if aws_credentials is None else aws_credentials.access_key_id
+                ),
+                aws_secret_access_key=(
+                    None if aws_credentials is None else aws_credentials.secret_access_key
+                ),
+                region_name=(
+                    None if aws_credentials is None else aws_credentials.default_region
+                ),
+                endpoint_url=(
+                    None if aws_credentials is None else aws_credentials.endpoint_url
+                ),
+            )
+
+            s3_client.upload_file(
+                file_name,
+                bucket,
+                object_name,
+                ExtraArgs={
+                    'Metadata': {
+                        'model_uuid': str(self.__uuid),
+                        'model_name': self.__name,
+                        'file_type': 'reference',
+                    }
+                },
+            )
+        except BotoClientError as e:
+            raise ClientError(
+                f'Unable to upload file {file_name} to remote storage: {e}'
+            ) from e
+
+        return self.__bind_current_dataset(f's3://{bucket}/{object_name}', separator, correlation_id_column)
 
     def __bind_reference_dataset(
         self,
