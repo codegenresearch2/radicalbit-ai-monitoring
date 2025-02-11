@@ -8,7 +8,9 @@ from radicalbit_platform_sdk.models import (
     Granularity,
     ModelType,
     OutputType,
-    ReferenceFileUpload,
+    CurrentFileUpload,
+    JobStatus,
+    SupportedTypes,
 )
 from radicalbit_platform_sdk.errors import ClientError
 import uuid
@@ -44,8 +46,8 @@ class ModelTest(unittest.TestCase):
 
         # Define new features
         new_features = [
-            ColumnDefinition(name='new_feature_1', type=DataType.STRING, field_type=FieldType.CATEGORICAL),
-            ColumnDefinition(name='new_feature_2', type=DataType.INT, field_type=FieldType.NUMERICAL),
+            ColumnDefinition(name='new_feature_1', type=SupportedTypes.STRING, field_type=FieldType.CATEGORICAL),
+            ColumnDefinition(name='new_feature_2', type=SupportedTypes.INT, field_type=FieldType.NUMERICAL),
         ]
 
         # Call the update_features method
