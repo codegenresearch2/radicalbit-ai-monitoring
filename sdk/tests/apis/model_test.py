@@ -142,7 +142,7 @@ class ModelTest(unittest.TestCase):
         model_id = uuid.uuid4()
         bucket_name = 'test-bucket'
         file_name = 'test.txt'
-        expected_path = f's3://{bucket_name}/{model_id}/reference/{file_name}'
+        expected_path = f's3://{bucket_name}/{model_id}/current/{file_name}'
         conn = boto3.resource('s3', region_name='us-east-1')
         conn.create_bucket(Bucket=bucket_name)
         model = Model(
@@ -218,3 +218,4 @@ Changes Made:
 3. Ensured error handling is consistent.
 4. Used mocking appropriately in tests that interact with external services.
 5. Added a test for updating model features to cover this functionality.
+6. Added tests for loading current datasets with and without object names.
