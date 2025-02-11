@@ -536,39 +536,3 @@ class ModelTest(unittest.TestCase):
                 raise ClientError("Feature must have a name, type, and field_type.")
 
         self.__features = new_features
-
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports are included
-# Ensure all necessary imports
