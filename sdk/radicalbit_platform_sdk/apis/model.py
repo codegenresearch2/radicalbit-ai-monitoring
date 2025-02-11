@@ -22,6 +22,7 @@ from radicalbit_platform_sdk.models import (
     ModelType,
     OutputType,
     ReferenceFileUpload,
+    ModelFeatures,  # Ensure this import is correct
 )
 
 class Model:
@@ -104,7 +105,7 @@ class Model:
                 url=f'{self.__base_url}/api/models/{str(self.__uuid)}/features',
                 valid_response_code=200,
                 func=lambda _: None,
-                data=features,
+                data=ModelFeatures(features=features).model_dump_json(),
             )
 
             # Update internal state if necessary (assuming the API call updates the state)
