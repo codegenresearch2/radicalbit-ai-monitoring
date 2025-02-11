@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Optional
 import uuid as uuid_lib
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, alias_generator
 from pydantic.alias_generators import to_camel
 
 from radicalbit_platform_sdk.models.column_definition import ColumnDefinition
@@ -23,12 +23,6 @@ class Granularity(str, Enum):
     DAY = 'DAY'
     WEEK = 'WEEK'
     MONTH = 'MONTH'
-
-
-class ModelFeatures(BaseModel):
-    features: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
 class BaseModelDefinition(BaseModel):
