@@ -92,3 +92,4 @@ Changes made based on the feedback:
 3. Reviewed the types and default values of attributes in each class.
 4. Ensured the inheritance structure is consistent with the gold code.
 5. Removed any unused classes.
+6. Ensured the `type` attribute in `NumericalFeatureMetrics` and `CategoricalFeatureMetrics` has the exact string values as in the gold code.
