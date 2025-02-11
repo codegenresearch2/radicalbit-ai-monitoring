@@ -14,12 +14,15 @@ from radicalbit_platform_sdk.models import (
     OutputType,
     SupportedTypes,
 )
+import responses
+import time
 
 class ModelTest(unittest.TestCase):
     @mock_aws
+    @responses.activate
     def test_delete_model(self):
         base_url = 'http://api:9000'
-        model_id = str(uuid.uuid4())
+        model_id = uuid.uuid4()
         column_def = ColumnDefinition(
             name='prediction', type=SupportedTypes.float, field_type=FieldType.numerical
         )
@@ -36,8 +39,8 @@ class ModelTest(unittest.TestCase):
                 outputs=outputs,
                 target=None,
                 timestamp=None,
-                created_at='str(time.time())',
-                updated_at='str(time.time())',
+                created_at=time.time(),
+                updated_at=time.time(),
             ),
         )
         conn = boto3.client('s3', region_name='us-east-1')
@@ -51,7 +54,7 @@ class ModelTest(unittest.TestCase):
 
     def test_update_model_features(self):
         base_url = 'http://api:9000'
-        model_id = str(uuid.uuid4())
+        model_id = uuid.uuid4()
         new_features = [
             ColumnDefinition(name='new_feature_1', type=SupportedTypes.string, field_type=FieldType.categorical),
             ColumnDefinition(name='new_feature_2', type=SupportedTypes.int, field_type=FieldType.numerical),
@@ -68,17 +71,18 @@ class ModelTest(unittest.TestCase):
                 outputs=OutputType(prediction=None, output=[]),
                 target=None,
                 timestamp=None,
-                created_at='str(time.time())',
-                updated_at='str(time.time())',
+                created_at=time.time(),
+                updated_at=time.time(),
             ),
         )
         model.update_features(new_features)
         self.assertEqual(model.features(), new_features)
 
     @mock_aws
+    @responses.activate
     def test_load_reference_dataset_without_object_name(self):
         base_url = 'http://api:9000'
-        model_id = str(uuid.uuid4())
+        model_id = uuid.uuid4()
         bucket_name = 'test-bucket'
         file_name = 'test.txt'
         column_def = ColumnDefinition(
@@ -118,8 +122,8 @@ class ModelTest(unittest.TestCase):
                     type=SupportedTypes.datetime,
                     field_type=FieldType.datetime,
                 ),
-                created_at='str(time.time())',
-                updated_at='str(time.time())',
+                created_at=time.time(),
+                updated_at=time.time(),
             ),
         )
         response = ReferenceFileUpload(
@@ -139,7 +143,7 @@ class ModelTest(unittest.TestCase):
 
     def test_load_reference_dataset_wrong_headers(self):
         base_url = 'http://api:9000'
-        model_id = str(uuid.uuid4())
+        model_id = uuid.uuid4()
         model = Model(
             base_url,
             ModelDefinition(
@@ -171,8 +175,8 @@ class ModelTest(unittest.TestCase):
                     type=SupportedTypes.datetime,
                     field_type=FieldType.datetime,
                 ),
-                created_at='str(time.time())',
-                updated_at='str(time.time())',
+                created_at=time.time(),
+                updated_at=time.time(),
             ),
         )
         with self.assertRaises(ClientError):
