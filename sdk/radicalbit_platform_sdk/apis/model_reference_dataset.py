@@ -86,17 +86,17 @@ class ModelReferenceDataset:
         if self.__data_metrics is not None:
             return self.__data_metrics
 
-        def __callback(response: requests.Response) -> Optional[DataQuality]:
+        def __callback(response: requests.Response) -> Tuple[JobStatus, Optional[DataQuality]]:
             try:
                 response_json = response.json()
                 job_status = JobStatus(response_json["jobStatus"])
                 if "dataQuality" in response_json:
                     if self.__model_type is ModelType.BINARY:
-                        return BinaryClassificationDataQuality.model_validate(response_json["dataQuality"])
+                        return job_status, BinaryClassificationDataQuality.model_validate(response_json["dataQuality"])
                     else:
                         raise ClientError("Unable to parse get metrics for not binary models")
                 else:
-                    return None
+                    return job_status, None
             except (KeyError, ValidationError) as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
 
