@@ -119,9 +119,10 @@ class ModelReferenceDataset:
             raise ClientError(f"Unable to parse response: {response.text}")
 
 
+
 This revised code snippet addresses the feedback by:
 
-1. Centralizing error handling within the `_parse_response` method.
+1. Centralizing callback logic within the `_parse_response` method.
 2. Using a `match` statement to handle job statuses.
 3. Returning a tuple containing the job status and the parsed response.
 4. Reducing code duplication by abstracting common logic into helper methods.
