@@ -3,7 +3,7 @@ from pydantic.alias_generators import to_camel
 from typing import Optional
 
 class ModelQuality(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel, protected_namespaces=())
+    pass
 
 class BinaryClassificationModelQuality(ModelQuality):
     f1: Optional[float] = None
@@ -24,6 +24,12 @@ class BinaryClassificationModelQuality(ModelQuality):
     false_negative_count: int
     area_under_roc: Optional[float] = None
     area_under_pr: Optional[float] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True, 
+        alias_generator=to_camel, 
+        protected_namespaces=()
+    )
 
 class MultiClassModelQuality(ModelQuality):
     pass
