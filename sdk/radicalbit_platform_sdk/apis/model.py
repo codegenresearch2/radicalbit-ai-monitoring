@@ -19,99 +19,92 @@ from radicalbit_platform_sdk.models import (
     FileReference,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     ModelType,
     OutputType,
     ReferenceFileUpload,
 )
 
-
 class Model:
     def __init__(self, base_url: str, definition: ModelDefinition) -> None:
-        self.__base_url = base_url
-        self.__uuid = definition.uuid
-        self.__name = definition.name
-        self.__description = definition.description
-        self.__model_type = definition.model_type
-        self.__data_type = definition.data_type
-        self.__granularity = definition.granularity
-        self.__features = definition.features
-        self.__target = definition.target
-        self.__timestamp = definition.timestamp
-        self.__outputs = definition.outputs
-        self.__frameworks = definition.frameworks
-        self.__algorithm = definition.algorithm
+        self._base_url = base_url
+        self._definition = definition
 
+    @property
     def uuid(self) -> UUID:
-        return self.__uuid
+        return self._definition.uuid
 
+    @property
     def name(self) -> str:
-        return self.__name
+        return self._definition.name
 
+    @property
     def description(self) -> Optional[str]:
-        return self.__description
+        return self._definition.description
 
+    @property
     def model_type(self) -> ModelType:
-        return self.__model_type
+        return self._definition.model_type
 
+    @property
     def data_type(self) -> DataType:
-        return self.__data_type
+        return self._definition.data_type
 
+    @property
     def granularity(self) -> Granularity:
-        return self.__granularity
+        return self._definition.granularity
 
+    @property
     def features(self) -> List[ColumnDefinition]:
-        return self.__features
+        return self._definition.features
 
+    @property
     def target(self) -> ColumnDefinition:
-        return self.__target
+        return self._definition.target
 
+    @property
     def timestamp(self) -> ColumnDefinition:
-        return self.__timestamp
+        return self._definition.timestamp
 
+    @property
     def outputs(self) -> OutputType:
-        return self.__outputs
+        return self._definition.outputs
 
+    @property
     def frameworks(self) -> Optional[str]:
-        return self.__frameworks
+        return self._definition.frameworks
 
+    @property
     def algorithm(self) -> Optional[str]:
-        return self.__algorithm
-
-    def update_features(self, features: List[ColumnDefinition]) -> None:
-        def __callback(_: requests.Response) -> None:
-            self.__features = features
-
-        invoke(
-            method='POST',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
-            valid_response_code=200,
-            data=ModelFeatures(features=features).model_dump_json(),
-            func=__callback,
-        )
+        return self._definition.algorithm
 
     def delete(self) -> None:
-        """Delete the actual `Model` from the platform
-
-        :return: None
-        """
+        """Delete the actual `Model` from the platform\n\n        :return: None\n        """
         invoke(
             method='DELETE',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
+            url=f'{self._base_url}/api/models/{str(self.uuid)}',
             valid_response_code=200,
             func=lambda _: None,
         )
 
+    def update_features(self, new_features: List[ColumnDefinition]) -> None:
+        """Update the features of the model\n\n        :param new_features: The new list of features for the model\n        :return: None\n        """
+        invoke(
+            method='POST',
+            url=f'{self._base_url}/api/models/{str(self.uuid)}',
+            valid_response_code=200,
+            func=lambda _: None,
+            data={'features': [feature.model_dump() for feature in new_features]},
+        )
+        self._definition.features = new_features
+
     def get_reference_datasets(self) -> List[ModelReferenceDataset]:
-        def __callback(response: requests.Response) -> List[ModelReferenceDataset]:
+        def _parse_response(response: requests.Response) -> List[ModelReferenceDataset]:
             try:
                 adapter = TypeAdapter(List[ReferenceFileUpload])
                 references = adapter.validate_python(response.json())
 
                 return [
-                    ModelReferenceDataset(
-                        self.__base_url, self.__uuid, self.__model_type, ref
-                    )
+                    ModelReferenceDataset(self._base_url, self.uuid, self.model_type, ref)
                     for ref in references
                 ]
             except ValidationError as e:
@@ -119,21 +112,19 @@ class Model:
 
         return invoke(
             method='GET',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/reference/all',
+            url=f'{self._base_url}/api/models/{str(self.uuid)}/reference/all',
             valid_response_code=200,
-            func=__callback,
+            func=_parse_response,
         )
 
     def get_current_datasets(self) -> List[ModelCurrentDataset]:
-        def __callback(response: requests.Response) -> List[ModelCurrentDataset]:
+        def _parse_response(response: requests.Response) -> List[ModelCurrentDataset]:
             try:
                 adapter = TypeAdapter(List[CurrentFileUpload])
                 references = adapter.validate_python(response.json())
 
                 return [
-                    ModelCurrentDataset(
-                        self.__base_url, self.__uuid, self.__model_type, ref
-                    )
+                    ModelCurrentDataset(self._base_url, self.uuid, self.model_type, ref)
                     for ref in references
                 ]
             except ValidationError as e:
@@ -141,9 +132,9 @@ class Model:
 
         return invoke(
             method='GET',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/current/all',
+            url=f'{self._base_url}/api/models/{str(self.uuid)}/current/all',
             valid_response_code=200,
-            func=__callback,
+            func=_parse_response,
         )
 
     def load_reference_dataset(
@@ -154,27 +145,17 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelReferenceDataset:
-        """Upload reference dataset to an S3 bucket and then bind it inside the platform.
-
-        Raises `ClientError` in case S3 upload fails.
-
-        :param file_name: The name of the reference file.
-        :param bucket: The name of the S3 bucket.
-        :param object_name: The optional name of the object uploaded to S3. Default value is None.
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Upload reference dataset to an S3 bucket and then bind it inside the platform.\n\n        Raises `ClientError` in case S3 upload fails.\n\n        :param file_name: The name of the reference file.\n        :param bucket: The name of the S3 bucket.\n        :param object_name: The optional name of the object uploaded to S3. Default value is None.\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         file_headers = pd.read_csv(
             file_name, nrows=0, delimiter=separator
         ).columns.tolist()
 
-        required_headers = self.__required_headers()
+        required_headers = self._get_required_headers()
 
         if set(required_headers).issubset(file_headers):
             if object_name is None:
-                object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
+                object_name = f'{self.uuid}/reference/{os.path.basename(file_name)}'
 
             try:
                 s3_client = boto3.client(
@@ -211,8 +192,8 @@ class Model:
                     object_name,
                     ExtraArgs={
                         'Metadata': {
-                            'model_uuid': str(self.__uuid),
-                            'model_name': self.__name,
+                            'model_uuid': str(self.uuid),
+                            'model_name': self.name,
                             'file_type': 'reference',
                         }
                     },
@@ -221,12 +202,12 @@ class Model:
                 raise ClientError(
                     f'Unable to upload file {file_name} to remote storage: {e}'
                 ) from e
-            return self.__bind_reference_dataset(
+            return self._bind_reference_dataset(
                 f's3://{bucket}/{object_name}', separator
             )
 
         raise ClientError(
-            f'File {file_name} not contains all defined columns: {required_headers}'
+            f'File {file_name} does not contain all defined columns: {required_headers}'
         ) from None
 
     def bind_reference_dataset(
@@ -235,13 +216,7 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelReferenceDataset:
-        """Bind an existing reference dataset file already uploaded to S3 to a `Model`
-
-        :param dataset_url: The url of the file already uploaded inside S3
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Bind an existing reference dataset file already uploaded to S3 to a `Model`\n\n        :param dataset_url: The url of the file already uploaded inside S3\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
 
@@ -280,13 +255,13 @@ class Model:
 
             file_headers = chunks.split('\n')[0].split(separator)
 
-            required_headers = self.__required_headers()
+            required_headers = self._get_required_headers()
 
             if set(required_headers).issubset(file_headers):
-                return self.__bind_reference_dataset(dataset_url, separator)
+                return self._bind_reference_dataset(dataset_url, separator)
 
             raise ClientError(
-                f'File {dataset_url} not contains all defined columns: {required_headers}'
+                f'File {dataset_url} does not contain all defined columns: {required_headers}'
             ) from None
         except BotoClientError as e:
             raise ClientError(
@@ -302,31 +277,20 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelCurrentDataset:
-        """Upload current dataset to an S3 bucket and then bind it inside the platform.
-
-        Raises `ClientError` in case S3 upload fails.
-
-        :param file_name: The name of the reference file.
-        :param bucket: The name of the S3 bucket.
-        :param correlation_id_column: The name of the column used for correlation id
-        :param object_name: The optional name of the object uploaded to S3. Default value is None.
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Upload current dataset to an S3 bucket and then bind it inside the platform.\n\n        Raises `ClientError` in case S3 upload fails.\n\n        :param file_name: The name of the reference file.\n        :param bucket: The name of the S3 bucket.\n        :param correlation_id_column: The name of the column used for correlation id\n        :param object_name: The optional name of the object uploaded to S3. Default value is None.\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         file_headers = pd.read_csv(
             file_name, nrows=0, delimiter=separator
         ).columns.tolist()
 
-        required_headers = self.__required_headers()
+        required_headers = self._get_required_headers()
         if correlation_id_column:
             required_headers.append(correlation_id_column)
-        required_headers.append(self.__timestamp.name)
+        required_headers.append(self.timestamp.name)
 
         if set(required_headers).issubset(file_headers):
             if object_name is None:
-                object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
+                object_name = f'{self.uuid}/current/{os.path.basename(file_name)}'
 
             try:
                 s3_client = boto3.client(
@@ -363,8 +327,8 @@ class Model:
                     object_name,
                     ExtraArgs={
                         'Metadata': {
-                            'model_uuid': str(self.__uuid),
-                            'model_name': self.__name,
+                            'model_uuid': str(self.uuid),
+                            'model_name': self.name,
                             'file_type': 'reference',
                         }
                     },
@@ -373,12 +337,12 @@ class Model:
                 raise ClientError(
                     f'Unable to upload file {file_name} to remote storage: {e}'
                 ) from e
-            return self.__bind_current_dataset(
+            return self._bind_current_dataset(
                 f's3://{bucket}/{object_name}', separator, correlation_id_column
             )
 
         raise ClientError(
-            f'File {file_name} not contains all defined columns: {required_headers}'
+            f'File {file_name} does not contain all defined columns: {required_headers}'
         ) from None
 
     def bind_current_dataset(
@@ -388,14 +352,7 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelCurrentDataset:
-        """Bind an existing current dataset file already uploaded to S3 to a `Model`
-
-        :param dataset_url: The url of the file already uploaded inside S3
-        :param correlation_id_column: The name of the column used for correlation id
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Bind an existing current dataset file already uploaded to S3 to a `Model`\n\n        :param dataset_url: The url of the file already uploaded inside S3\n        :param correlation_id_column: The name of the column used for correlation id\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
 
@@ -434,33 +391,33 @@ class Model:
 
             file_headers = chunks.split('\n')[0].split(separator)
 
-            required_headers = self.__required_headers()
+            required_headers = self._get_required_headers()
             required_headers.append(correlation_id_column)
-            required_headers.append(self.__timestamp.name)
+            required_headers.append(self.timestamp.name)
 
             if set(required_headers).issubset(file_headers):
-                return self.__bind_current_dataset(
+                return self._bind_current_dataset(
                     dataset_url, separator, correlation_id_column
                 )
 
             raise ClientError(
-                f'File {dataset_url} not contains all defined columns: {required_headers}'
+                f'File {dataset_url} does not contain all defined columns: {required_headers}'
             ) from None
         except BotoClientError as e:
             raise ClientError(
                 f'Unable to get file {dataset_url} from remote storage: {e}'
             ) from e
 
-    def __bind_reference_dataset(
+    def _bind_reference_dataset(
         self,
         dataset_url: str,
         separator: str,
     ) -> ModelReferenceDataset:
-        def __callback(response: requests.Response) -> ModelReferenceDataset:
+        def _parse_response(response: requests.Response) -> ModelReferenceDataset:
             try:
                 response = ReferenceFileUpload.model_validate(response.json())
                 return ModelReferenceDataset(
-                    self.__base_url, self.__uuid, self.__model_type, response
+                    self._base_url, self.uuid, self.model_type, response
                 )
             except ValidationError as e:
                 raise ClientError(f'Unable to parse response: {response.text}') from e
@@ -469,23 +426,23 @@ class Model:
 
         return invoke(
             method='POST',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/reference/bind',
+            url=f'{self._base_url}/api/models/{str(self.uuid)}/reference/bind',
             valid_response_code=200,
-            func=__callback,
+            func=_parse_response,
             data=file_ref.model_dump_json(),
         )
 
-    def __bind_current_dataset(
+    def _bind_current_dataset(
         self,
         dataset_url: str,
         separator: str,
         correlation_id_column: Optional[str] = None,
     ) -> ModelCurrentDataset:
-        def __callback(response: requests.Response) -> ModelCurrentDataset:
+        def _parse_response(response: requests.Response) -> ModelCurrentDataset:
             try:
                 response = CurrentFileUpload.model_validate(response.json())
                 return ModelCurrentDataset(
-                    self.__base_url, self.__uuid, self.__model_type, response
+                    self._base_url, self.uuid, self.model_type, response
                 )
             except ValidationError as e:
                 raise ClientError(f'Unable to parse response: {response.text}') from e
@@ -498,13 +455,13 @@ class Model:
 
         return invoke(
             method='POST',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}/current/bind',
+            url=f'{self._base_url}/api/models/{str(self.uuid)}/current/bind',
             valid_response_code=200,
-            func=__callback,
+            func=_parse_response,
             data=file_ref.model_dump_json(),
         )
 
-    def __required_headers(self) -> List[str]:
-        model_columns = self.__features + self.__outputs.output
-        model_columns.append(self.__target)
+    def _get_required_headers(self) -> List[str]:
+        model_columns = self.features + self.outputs.output
+        model_columns.append(self.target)
         return [model_column.name for model_column in model_columns]
