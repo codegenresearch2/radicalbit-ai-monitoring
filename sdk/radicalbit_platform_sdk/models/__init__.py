@@ -4,8 +4,6 @@ from .data_type import DataType
 from .dataset_data_quality import (
     ClassificationDataQuality,
     CategoricalFeatureMetrics,
-    CategoryFrequency,
-    ClassMedianMetrics,
     ClassMetrics,
     DataQuality,
     FeatureMetrics,
@@ -30,14 +28,12 @@ from .dataset_model_quality import (
     RegressionModelQuality,
 )
 from .dataset_stats import DatasetStats
-from .field_type import FieldType
 from .file_upload_result import CurrentFileUpload, FileReference, ReferenceFileUpload
 from .job_status import JobStatus
 from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     OutputType,
 )
 from .model_type import ModelType
@@ -48,7 +44,6 @@ __all__ = [
     'Granularity',
     'CreateModel',
     'ModelDefinition',
-    'ModelFeatures',
     'ColumnDefinition',
     'JobStatus',
     'DataType',
@@ -67,10 +62,8 @@ __all__ = [
     'ClassMetrics',
     'MedianMetrics',
     'MissingValue',
-    'ClassMedianMetrics',
     'FeatureMetrics',
     'NumericalFeatureMetrics',
-    'CategoryFrequency',
     'CategoricalFeatureMetrics',
     'DriftAlgorithm',
     'FeatureDriftCalculation',
@@ -81,5 +74,19 @@ __all__ = [
     'FileReference',
     'AwsCredentials',
     'SupportedTypes',
-    'FieldType',
 ]
+
+# Enhancing ModelDefinition with ModelFeatures
+class ModelFeatures(ModelDefinition):
+    def update_features(self, new_features: List[ColumnDefinition]):
+        self.features = new_features
+
+    def add_feature(self, new_feature: ColumnDefinition):
+        self.features.append(new_feature)
+
+    def remove_feature(self, feature_name: str):
+        self.features = [feature for feature in self.features if feature.name != feature_name]
+
+# Maintaining consistent naming conventions
+class ModelOut(ModelFeatures):
+    # rest of the class definition...
