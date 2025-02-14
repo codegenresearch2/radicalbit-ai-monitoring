@@ -37,8 +37,8 @@ from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     OutputType,
+    ModelFeatures,  # Enhanced model definition with ModelFeatures
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
@@ -48,7 +48,7 @@ __all__ = [
     'Granularity',
     'CreateModel',
     'ModelDefinition',
-    'ModelFeatures',
+    'ModelFeatures',  # Added ModelFeatures to the all list
     'ColumnDefinition',
     'JobStatus',
     'DataType',
